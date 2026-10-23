@@ -107,6 +107,8 @@ body.walking .mepill{display:none}
 [dir="rtl"] .mepill{text-align:right}
 #langSel{width:auto;min-width:40px;height:40px;border-radius:8px;border:1px solid #cfc9b8;background:#fffdf7;color:#1f2a27;
   font-family:inherit;font-size:13px;font-weight:700;padding:0 4px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.12);text-align:center}
+#storyLangSel{width:auto;min-width:40px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  font-family:inherit;font-size:13px;font-weight:700;padding:0 4px;cursor:pointer;text-align:center;flex:0 0 auto}
 [dir="rtl"] .brand,[dir="rtl"] .sec,[dir="rtl"] .villa-card,[dir="rtl"] .result,[dir="rtl"] .facts,[dir="rtl"] .peek .t{text-align:right}
 [dir="rtl"] .villa-card{border-left:0;border-right:3px solid var(--river);padding:4px 12px 4px 0}
 [dir="rtl"] .tips{padding-left:0;padding-right:18px}
@@ -181,13 +183,6 @@ body.walking .legend,body.walking .hint,body.walking .peek{display:none}
 .facts .acts{display:flex;flex-direction:column;gap:8px}
 .tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .story h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
-.story-lang{padding-top:22px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
-.story-lang:first-child{padding-top:0;border-top:none}
-.story-lang-label{display:inline-block;align-self:flex-start;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teak);font-weight:700;border:1px solid var(--line);border-radius:999px;padding:3px 11px}
-.story-lang .tag{font-size:15px}
-.story-lang[dir="rtl"]{text-align:right}
-.story-lang[dir="rtl"] .story-lang-label{align-self:flex-end}
-.story-lang[dir="rtl"] .tips{padding-left:0;padding-right:20px}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
 .gallery button{padding:0;border:0;background:none;cursor:zoom-in;display:flex;flex-direction:column;gap:4px;text-align:left}
 .gallery .ph{aspect-ratio:4/3;border-radius:8px}
@@ -392,6 +387,7 @@ body.walking .legend,body.walking .hint,body.walking .peek{display:none}
   <div class="story-bar">
     <button class="btn sm" id="storyBack" data-i18n="backMap">← Map</button>
     <span class="ttl" id="storyBarTitle"></span>
+    <select id="storyLangSel" data-i18n-attr="aria-label:langAria" aria-label="Language"></select>
     <button class="btn sm editbtn" id="storyEdit">Edit</button>
   </div>
   <div class="story-in" id="storyBody"></div>
@@ -456,7 +452,7 @@ function setLang(l,boot){
   const html=document.documentElement;
   html.setAttribute("lang",LANG);html.setAttribute("dir",LANG==="ar"?"rtl":"ltr");
   applyI18n();
-  const sel=$("langSel");if(sel&&sel.value!==LANG)sel.value=LANG;
+  for(const id of ["langSel","storyLangSel"]){const sel=$(id);if(sel&&sel.value!==LANG)sel.value=LANG;}
   if(boot)return;
   refillSelects();refreshMapText();renderExplore();renderAreas();renderChips();
   setAcres(+$("acres").value||29);
@@ -534,23 +530,6 @@ const HASSTORY=ATTR.concat(SMOKE).concat(REF);
 const GPSOK=()=>Array.isArray(STATE.gps)&&STATE.gps.length>=1;
 const RAW=k=>STATE.places[k]||{name:k,photos:[]};
 const P=k=>{const b=RAW(k),t=trPlace(k);return t?Object.assign({},b,t):b;};
-/* every place's story shows stacked in all four guest languages, regardless of the UI language toggle */
-const STORY_LANGS=["en","th","zh","ar"];
-function placeLang(k,lang){const b=RAW(k);if(lang==="en")return b;const t=I18N.places[lang]&&I18N.places[lang][k];return t?Object.assign({},b,t):b;}
-function storyLangHTML(k){
-  return STORY_LANGS.map(lang=>{
-    const d=placeLang(k,lang),ui=I18N.ui[lang]||I18N.ui.en;
-    const storyTxt=(d.story||"").split(/\n\s*\n/).filter(s=>s.trim()).map(s=>`<p>${esc(s.trim())}</p>`).join("");
-    const tipsArr=(d.tips||[]).filter(Boolean);
-    const rtl=lang==="ar";
-    return `<div class="story-lang" lang="${lang}"${rtl?' dir="rtl"':""}>
-      <span class="story-lang-label">${esc(ui.langName)}</span>
-      <p class="tag">${esc(d.tagline||"")}</p>
-      <article>${storyTxt||`<p class="note">${esc(ui.storySoon)}</p>`}</article>
-      ${tipsArr.length?`<section><h2>${esc(ui.goodToKnow)}</h2><ul class="tips">${tipsArr.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></section>`:""}
-    </div>`;
-  }).join("");
-}
 const nameOf=k=>k==="here"?T("myLoc"):k.startsWith("p:")?T("yourLoc"):k==="n:gate"?T("mainGate"):k.startsWith("v:")?T("villa",{n:k.slice(2)}):P(k.slice(2)).name;
 const photoSrc=p=>p.id?"photos/"+p.id+".jpg":(p.src||"");
 const initials=n=>String(n).replace(/&/g," ").split(/\s+/).filter(w=>/^[A-Za-z]/.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join("");
@@ -627,9 +606,10 @@ function renderChips(){const box=$("chips");box.innerHTML="";
   for(const k of CHIPS){const b=document.createElement("button");b.className="chip";b.textContent=P(k).name;
     b.onclick=()=>{$("from").value="f:lobby";$("to").value="f:"+k;route(true);showPeek("f:"+k);};box.append(b);}}
 renderChips();
-{const sel=$("langSel");
+function initLangSel(id){const sel=$(id);if(!sel)return;
  for(const l of LANGS){const o=new Option(I18N.ui[l].langShort,l);o.title=I18N.ui[l].langName;sel.append(o);}
  sel.value=LANG;sel.onchange=()=>setLang(sel.value);}
+initLangSel("langSel");initLangSel("storyLangSel");
 
 /* ---------- svg helpers ---------- */
 function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.append(e);return e;}
@@ -1078,11 +1058,14 @@ function renderStory(){const k=current,pl=P(k),photos=pl.photos||[];
   const fl=fromLobby("f:"+k),i=ATTR.indexOf(k),prev=ATTR[(i-1+ATTR.length)%ATTR.length],next=ATTR[(i+1)%ATTR.length];
   const hero=photos.length?`<div class="ph hero" id="hero" role="button" tabindex="0"><span class="mono">${esc(initials(RAW(k).name))}</span><img src="${esc(photoSrc(photos[0]))}" alt="${esc(photos[0].caption||pl.name)}" onerror="this.remove()"><span class="count">${esc(photos.length>1?T("photoCount",{n:photos.length}):T("photoCount1"))}</span></div>`
     :`<div class="ph hero empty"><span class="mono" style="font-size:56px">${esc(initials(RAW(k).name))}</span><span class="count">${esc(T("photosSoon"))}</span></div>`;
+  const story=(pl.story||"").split(/\n\s*\n/).filter(s=>s.trim()).map(s=>`<p>${esc(s.trim())}</p>`).join("");
+  const tips=(pl.tips||[]).filter(Boolean);
   $("storyBody").innerHTML=`${hero}
    <header><div class="kicker">${esc(T("storyKicker",{i:i+1,n:ATTR.length}))}</div><h1 id="storyTitle">${esc(pl.name)}</h1><p class="tag">${esc(pl.tagline||"")}</p></header>
    <div class="story-grid">
      <div style="display:flex;flex-direction:column;gap:24px;min-width:0">
-       ${storyLangHTML(k)}
+       <article>${story||`<p class="note">${esc(T("storySoon"))}</p>`}</article>
+       ${tips.length?`<section><h2>${esc(T("goodToKnow"))}</h2><ul class="tips">${tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></section>`:""}
        ${photos.length>1?`<section><h2>${esc(T("gallery"))}</h2><div class="gallery">${photos.map((p,j)=>`<button data-j="${j}"><div class="ph"><img src="${esc(photoSrc(p))}" alt="${esc(p.caption||pl.name)}" loading="lazy" onerror="this.remove()"></div>${p.caption?`<small>${esc(p.caption)}</small>`:""}</button>`).join("")}</div></section>`:""}
      </div>
      <aside class="facts"><dl>
