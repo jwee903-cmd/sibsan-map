@@ -696,8 +696,12 @@ function route(zoom){
   if(zoom) fitTo([pa,pb].concat(r.path),60);
   const kb=b.slice(2);if(AREAS[kb]&&zoom) flashAreas([kb],false);
 }
-$("from").onchange=()=>route(true);$("to").onchange=()=>{route(true);showPeek($("to").value);};
-$("swap").onclick=()=>{const t=$("from").value;$("from").value=$("to").value;$("to").value=t;route(true);};
+/* In "Route between two points": once both places are chosen, start walking straight away
+   (same as pressing the Start walking button). Only the pickers and swap do this. */
+function autoWalk(){const a=$("from").value,b=$("to").value;if(a&&b&&a!==b)startWalk();}
+$("from").onchange=()=>{route(true);autoWalk();};
+$("to").onchange=()=>{route(true);showPeek($("to").value);autoWalk();};
+$("swap").onclick=()=>{const t=$("from").value;$("from").value=$("to").value;$("to").value=t;route(true);autoWalk();};
 
 
 /* ---------- live walking: follow the guest's phone ---------- */
