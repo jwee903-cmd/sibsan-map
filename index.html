@@ -614,7 +614,7 @@ for(const v of villas){const o=document.createElement("option");o.value=v;$("vil
 const CHIPS=["pool","restaurant","spa","cafe","fitness","tower","bicycle","courtyard","carpark"];
 function renderChips(){const box=$("chips");box.innerHTML="";
   for(const k of CHIPS){const b=document.createElement("button");b.className="chip";b.textContent=P(k).name;
-    b.onclick=()=>{$("from").value="f:lobby";$("to").value="f:"+k;route(true);showPeek("f:"+k);autoWalk();};box.append(b);}}
+    b.onclick=()=>{$("from").value="f:lobby";$("to").value="f:"+k;route(true);};box.append(b);}}
 renderChips();
 function initLangSel(id){const sel=$(id);if(!sel)return;
  for(const l of LANGS){const o=new Option(I18N.ui[l].langShort,l);o.title=I18N.ui[l].langName;sel.append(o);}
@@ -696,12 +696,11 @@ function route(zoom){
   if(zoom) fitTo([pa,pb].concat(r.path),60);
   const kb=b.slice(2);if(AREAS[kb]&&zoom) flashAreas([kb],false);
 }
-/* In "Route between two points": once both places are chosen, start walking straight away
-   (same as pressing the Start walking button). The pickers, swap and Quick routes chips do this. */
-function autoWalk(){const a=$("from").value,b=$("to").value;if(a&&b&&a!==b)startWalk();}
-$("from").onchange=()=>{route(true);autoWalk();};
-$("to").onchange=()=>{route(true);showPeek($("to").value);autoWalk();};
-$("swap").onclick=()=>{const t=$("from").value;$("from").value=$("to").value;$("to").value=t;route(true);autoWalk();};
+/* In "Route between two points": choosing places only shows the route. The Resort information
+   panel stays open; it slides away when the guest presses Start walking (startWalk -> closeSheet). */
+$("from").onchange=()=>route(true);
+$("to").onchange=()=>route(true);
+$("swap").onclick=()=>{const t=$("from").value;$("from").value=$("to").value;$("to").value=t;route(true);};
 
 
 /* ---------- live walking: follow the guest's phone ---------- */
