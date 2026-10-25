@@ -976,7 +976,7 @@ function renderAreas(){const box=$("areas");box.innerHTML="";
     row.querySelector('[data-act="route"]').onclick=()=>{$("from").value="f:lobby";$("to").value="f:"+k;route(true);showPeek("f:"+k);};
     const sb=row.querySelector('[data-act="story"]');if(sb)sb.onclick=()=>openStory(k);
     box.append(row);}}
-$("flashSmoke").onclick=()=>flashAreas(SMOKE,true);
+$("flashSmoke").onclick=()=>{closeSheet();flashAreas(SMOKE,true);};
 $("nearSmoke").onclick=()=>{const raw=$("from").value;const a=(!raw||raw==="here")?"f:lobby":raw;let best=null;
   for(const k of SMOKE){const d=shortest(a,"f:"+k).len;if(!best||d<best.d)best={k,d};}
   $("to").value="f:"+best.k;route(true);showPeek("f:"+best.k);};
