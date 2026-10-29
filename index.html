@@ -114,6 +114,8 @@ body.walking .mepill{display:none}
 [dir="rtl"] .tips{padding-left:0;padding-right:18px}
 .legend{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:12px;background:rgba(255,253,247,.94);color:#1f2a27;border:1px solid #cfc9b8;border-radius:8px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:6px;max-width:calc(100% - 24px)}
 .legend .keys{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.admpill{font-size:11px;font-weight:700;color:#0f6b6f;text-decoration:none;border:1px solid #0f6b6f;border-radius:99px;padding:1px 8px}
+small.occline{font-weight:600}
 .peeking .legend{display:none}
 .scalebar{display:flex;flex-direction:column;gap:3px}
 .scalebar i{display:block;height:6px;border:2px solid #1f2a27;border-top:0}
@@ -381,7 +383,10 @@ body.walking .legend,body.walking .hint,body.walking .peek{display:none}
     <div class="legend">
       <div class="scalebar"><i id="sbar" style="width:60px"></i><b id="sbarTxt">100 m</b></div>
       <div class="keys">
-        <span><span class="dot" style="background:#0f6b6f"></span> <span data-i18n="legVilla">Villa</span></span>
+        <span id="legVillaKey"><span class="dot" style="background:#0f6b6f"></span> <span data-i18n="legVilla">Villa</span></span>
+        <span id="legFree" hidden><span class="dot" style="background:#1f8a4c"></span> Available</span>
+        <span id="legOcc" hidden><span class="dot" style="background:#c62839"></span> Occupied</span>
+        <a class="admpill" id="legAdm" href="admin.html" hidden>Admin view</a>
         <span><span class="dot" style="background:#9a5b2c;border-radius:2px"></span> <span data-i18n="legVenue">Venue</span></span>
       </div>
     </div>
@@ -653,6 +658,7 @@ for(const k in AREAS){const a=AREAS[k],[x,y,w,h]=a.rect;
 function areaLabel(k){return T(k==="lobby"?"areaLobby":k==="bicycle"?"areaBicycle":k==="courtyard"?"areaCourtyard":"areaSmoking");}
 function refreshMapText(){
   mk.querySelectorAll("g[data-k]").forEach(g=>{const t=g.querySelector("title");if(t)t.textContent=nameOf(g.getAttribute("data-k"));});
+  if(typeof applyOcc==="function"&&typeof OCC!=="undefined")setTimeout(applyOcc,0);
   zl.querySelectorAll("g[data-k]").forEach(g=>{const k=g.getAttribute("data-k").slice(2);
     const t=g.querySelector("title");if(t)t.textContent=P(k).name;
     const tx=g.querySelector("text");if(tx&&AREAS[k])tx.textContent=areaLabel(k);});}
@@ -957,7 +963,7 @@ function locate(v){
   const p=GEO.V[v],fl=fromLobby("v:"+v);
   let near=null;for(const k of ["restaurant","pool","spa","fitness","cafe"]){const d=shortest("v:"+v,"f:"+k).len*MPP;if(!near||d<near.d)near={k,d};}
   let sm=null;for(const k of SMOKE){const d=shortest("v:"+v,"f:"+k).len*MPP;if(!sm||d<sm.d)sm={k,d};}
-  $("vcard").innerHTML=`<h3>${esc(T("villa",{n:v}))}</h3><p>${esc(zone(v))}</p><p>${esc(T("fromLobbyWalk",{n:fmt(fl),min:Math.max(1,Math.round(fl/75))}))}</p><p>${esc(T("nearestVenue",{name:P(near.k).name,n:fmt(near.d)}))}</p><p>${esc(T("nearestSmoke",{n:fmt(sm.d)}))}</p>
+  $("vcard").innerHTML=`<h3>${esc(T("villa",{n:v}))}</h3><p>${esc(zone(v))}</p><p>${esc(T("fromLobbyWalk",{n:fmt(fl),min:Math.max(1,Math.round(fl/75))}))}</p>${occLine(v,"p")}<p>${esc(T("nearestVenue",{name:P(near.k).name,n:fmt(near.d)}))}</p><p>${esc(T("nearestSmoke",{n:fmt(sm.d)}))}</p>
    <div class="chips" style="margin-top:6px"><button class="chip" id="vFrom">${esc(T("routeFromLobby"))}</button><button class="chip" id="vSet">${esc(T("setAsStart"))}</button></div>`;
   $("vcard").hidden=false;
   $("vFrom").onclick=()=>{$("from").value="f:lobby";$("to").value="v:"+v;route(true);};
@@ -997,7 +1003,7 @@ function showPeek(k){const pk=$("peek");if(!k){pk.hidden=true;$("wrap").classLis
   closeSheet();
   let html;
   if(k.startsWith("v:")){const v=k.slice(2);const fl=fromLobby(k);
-    html=`<div class="ph"><span class="mono">${esc(v)}</span></div><div class="t"><b>${esc(T("villa",{n:v}))}</b><small>${esc(zone(v))}</small><small>${esc(T("fromLobbyWalk",{n:fmt(fl),min:Math.max(1,Math.round(fl/75))}))}</small>
+    html=`<div class="ph"><span class="mono">${esc(v)}</span></div><div class="t"><b>${esc(T("villa",{n:v}))}</b><small>${esc(zone(v))}</small><small>${esc(T("fromLobbyWalk",{n:fmt(fl),min:Math.max(1,Math.round(fl/75))}))}</small>${occLine(v,"small")}
       <div class="acts"><button class="go" data-a="route">${esc(T("routeFromLobby"))}</button></div></div>`;}
   else{const id=k.slice(2),pl=P(id),fl=fromLobby(k),isA=HASSTORY.includes(id);
     html=`${thumb(id)}<div class="t"><b>${esc(pl.name)}</b><small><bdi>${esc(pl.tagline||pl.hours||"")}</bdi></small><small>${id==="lobby"?esc(T("startEveryRoute")):esc(T("fromLobbyWalk",{n:fmt(fl),min:Math.max(1,Math.round(fl/75))}))}</small>
@@ -1354,6 +1360,64 @@ if(noticeSign){
   EDITOR=!!a&&(can||!!s);
   if(EDITOR){document.body.classList.add("editor");}
 }catch(e){}finally{capsDone();}})();
+
+/* ---------- villa availability colours (administrator only) ----------
+   Stays are entered on admin.html and stored encrypted (occupancy.enc.json). This page only shows
+   red / green dots on a device where the administrator has unlocked admin.html; every other
+   visitor never fetches the file and sees the normal dots. */
+const OCC={on:false,stays:[],loaded:false};
+const occB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const occLS=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+function occBKK(){
+  const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"})
+    .formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value,o),{});
+  return p.year+"-"+p.month+"-"+p.day+"T"+p.hour+":"+p.minute;}
+const occEnd=s=>s.out+"T"+(s.outTime||"12:00");
+const occIs=(s,at)=>s.in+"T00:00"<=at&&at<occEnd(s);
+const occDay=d=>{const[y,m,dd]=d.split("-").map(Number);return new Date(y,m-1,dd).toLocaleDateString("en-GB",{day:"numeric",month:"short"});};
+function occStatus(v){
+  const at=occBKK(),list=OCC.stays.filter(s=>s.villa===v).sort((a,b)=>a.in.localeCompare(b.in));
+  return {cur:list.find(s=>occIs(s,at)),next:list.find(s=>s.in+"T00:00">at)};}
+function occLine(v,tag){
+  if(!OCC.on||!OCC.loaded)return "";
+  const {cur,next}=occStatus(v);let t;
+  if(cur)t="Occupied"+(cur.guest?" by "+cur.guest:"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00");
+  else t="Available"+(next?" · next arrival "+occDay(next.in):"");
+  return `<${tag} class="occline" style="color:${cur?"#c62839":"#1f8a4c"}">${esc(t)}</${tag}>`;}
+function applyOcc(){
+  if(!OCC.on)return;
+  for(const v of villas){
+    const g=mk.querySelector(`[data-k="v:${v}"]`);if(!g)continue;
+    const dot=g.querySelectorAll("circle")[1];if(!dot)continue;
+    if(!OCC.loaded){dot.setAttribute("fill","#0f6b6f");dot.setAttribute("r","4.2");continue;}
+    const {cur}=occStatus(v);
+    dot.setAttribute("fill",cur?"#c62839":"#1f8a4c");dot.setAttribute("r",cur?"5.6":"4.2");
+    const t=g.querySelector("title");if(t)t.textContent=T("villa",{n:v})+" · "+(cur?"Occupied":"Available");}
+  $("legVillaKey").hidden=OCC.loaded;$("legFree").hidden=!OCC.loaded;$("legOcc").hidden=!OCC.loaded;$("legAdm").hidden=false;
+  $("legAdm").textContent=OCC.loaded?"Admin view":"Admin view · no data";}
+async function occLoad(){
+  const raw=occLS("sibsan-adm-key");if(!raw||!window.crypto||!crypto.subtle)return;
+  OCC.on=true;
+  try{
+    let blob=null;const tok=occLS("sibsan-adm-token"),local=occLS("sibsan-adm-blob"),dirty=occLS("sibsan-adm-dirty")==="1";
+    if(dirty&&local)blob=JSON.parse(local);
+    if(!blob){
+      try{
+        if(tok){const r=await fetch("https://api.github.com/repos/"+location.hostname.split(".")[0]+"/"+(location.pathname.split("/")[1]||"sibsan-map")+"/contents/occupancy.enc.json",{headers:{Authorization:"Bearer "+tok,Accept:"application/vnd.github+json"},cache:"no-store"});
+          if(r.status===200){blob=JSON.parse(atob((await r.json()).content.replace(/\s/g,"")));}}
+        if(!blob){const r=await fetch("occupancy.enc.json?t="+Date.now(),{cache:"no-store"});if(r.ok)blob=await r.json();}
+      }catch(e){}
+      if(!blob&&local)blob=JSON.parse(local);}
+    if(!blob){applyOcc();return;}
+    const key=await crypto.subtle.importKey("raw",occB64(raw),"AES-GCM",false,["decrypt"]);
+    const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:occB64(blob.iv)},key,occB64(blob.data));
+    OCC.stays=(JSON.parse(new TextDecoder().decode(pt)).stays)||[];OCC.loaded=true;
+  }catch(e){OCC.loaded=false;}
+  applyOcc();}
+occLoad();
+setInterval(applyOcc,60000);
+setInterval(()=>{if(OCC.on)occLoad();},300000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&OCC.on)occLoad();});
 
 /* ---------- boot ---------- */
 setLang(LANG,true);

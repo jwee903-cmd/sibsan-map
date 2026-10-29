@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Villa availability · Sib San</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#f3f1ea; --panel:#fffdf7; --ink:#1f2a27; --muted:#66706b; --line:#dcd7c8; --shade:rgba(31,42,39,.06);
+  --river:#0f6b6f; --on-river:#fff; --teak:#9a5b2c;
+  --free:#1f8a4c; --free-bg:rgba(31,138,76,.08); --occ:#c62839; --occ-bg:#c62839; --on-occ:#fff;
+  --f-display:"Marcellus","Cormorant Garamond",Georgia,serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#141a19; --panel:#1c2422; --ink:#e9ece6; --muted:#9aa59f; --line:#2f3a37; --shade:rgba(255,255,255,.05);
+  --river:#5fb8b1; --on-river:#0d1413; --teak:#d39a6a;
+  --free:#58c585; --free-bg:rgba(88,197,133,.1); --occ:#ef6a78; --occ-bg:#b8283a; --on-occ:#fff; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding:0 0 env(safe-area-inset-bottom,0)}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;line-height:1.15}
+h1{font-size:30px} h2{font-size:21px} h3{font-size:17px}
+p{margin:0}
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 56px}
+.muted{color:var(--muted)}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+a{color:var(--river)}
+:focus-visible{outline:3px solid var(--river);outline-offset:2px;border-radius:6px}
+
+/* buttons & fields */
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;min-height:44px;padding:0 15px;font:600 14px var(--f-body);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.btn:hover{border-color:var(--river)}
+.btn.primary{background:var(--river);border-color:var(--river);color:var(--on-river)}
+.btn.sm{min-height:36px;padding:0 11px;font-size:13px}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.danger{color:var(--occ)}
+.btn[disabled]{opacity:.55;cursor:default}
+label.f{display:block}
+label.f>span{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+input,select,textarea{width:100%;min-height:46px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;padding:10px 12px;font:16px var(--f-body)}
+input[type=date],input[type=time]{font-family:var(--f-num);font-size:15px}
+textarea{min-height:70px;resize:vertical}
+.hint{font-size:13px;color:var(--muted);margin-top:5px}
+.err{color:var(--occ);font-size:14px;font-weight:600;margin-top:8px}
+.ok{color:var(--free);font-size:14px;font-weight:600;margin-top:8px}
+
+/* lock screen */
+#lock{min-height:100svh;display:grid;place-items:center;padding:20px 16px}
+.lockcard{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 22px}
+.lockcard h1{margin-bottom:8px}
+.lockcard form{display:grid;gap:14px;margin-top:20px}
+
+/* top */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top .acts{display:flex;gap:8px;flex-wrap:wrap}
+.sync{margin-top:12px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sync i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block;flex:0 0 auto}
+.sync #syncTxt{flex:1 1 0;min-width:0}
+.sync.ok i{background:var(--free)} .sync.warn i{background:#d98a00} .sync.bad i{background:var(--occ)}
+.status{display:flex;flex-wrap:wrap;align-items:end;gap:14px 28px;margin:22px 0 6px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.counts{display:flex;gap:26px}
+.counts b{font:400 38px/1 var(--f-display);display:block}
+.counts .o b{color:var(--occ)} .counts .a b{color:var(--free)}
+.counts span{font-size:13px;color:var(--muted)}
+.when{margin-left:auto;min-width:190px}
+.when label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+.when .row{display:flex;gap:8px}
+.when input{min-height:42px}
+
+/* rack */
+.rack{margin-top:22px;display:grid;gap:18px}
+.zone h3{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.zone h3 small{font:13px var(--f-body);color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.tile{position:relative;appearance:none;border:2px solid var(--free);background:var(--free-bg);color:var(--free);border-radius:7px 7px 10px 10px;padding:15px 0 8px;font:400 18px/1 var(--f-display);cursor:pointer;min-height:54px}
+.tile::before{content:"";position:absolute;top:5px;left:50%;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;border:1.5px solid currentColor;opacity:.7}
+.tile.occ{background:var(--occ-bg);border-color:var(--occ-bg);color:var(--on-occ)}
+.tile.sel{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--river)}
+.tile small{display:block;font:500 10px/1.2 var(--f-body);margin-top:4px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
+.key{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:14px;align-items:center;flex-wrap:wrap}
+.key span{display:inline-flex;align-items:center;gap:7px}
+.key i{width:16px;height:12px;border-radius:3px;display:inline-block;border:2px solid var(--free);background:var(--free-bg)}
+.key i.o{background:var(--occ-bg);border-color:var(--occ-bg)}
+.detail{margin-top:12px;min-height:22px;font-size:14px}
+
+/* form + list */
+section.blk{margin-top:34px}
+section.blk>h2{margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form{display:grid;gap:14px}
+.form .full{grid-column:1/-1}
+.form .actions{display:flex;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{min-height:38px}
+.tabs button[aria-pressed=true]{background:var(--river);border-color:var(--river);color:var(--on-river)}
+.stay{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;padding:13px 0;border-top:1px solid var(--line)}
+.stay:first-child{border-top:0}
+.stay .v{font:400 26px/1 var(--f-display);grid-row:span 2;min-width:62px}
+.stay .who{font-weight:600}
+.stay .when2{font-size:13px;color:var(--muted)}
+.stay .st{font-size:13px;font-weight:600;justify-self:end;text-align:right}
+.stay .st.in{color:var(--occ)} .stay .st.soon{color:var(--teak)} .stay .st.past{color:var(--muted)}
+.stay .tools{grid-column:2/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.stay .nt{grid-column:2/-1;font-size:13px;color:var(--muted)}
+.empty{padding:18px 4px;color:var(--muted)}
+details.card summary{cursor:pointer;font:400 19px var(--f-display);list-style:revert}
+details.card[open] summary{margin-bottom:12px}
+details ol{margin:0 0 14px;padding-left:20px;display:grid;gap:6px}
+.stack{display:grid;gap:12px}
+code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radius:4px}
+@media (max-width:520px){
+  .when{margin-left:0;width:100%}
+  .counts b{font-size:34px}
+  .stay{grid-template-columns:auto 1fr}
+  .stay .st{grid-column:2;justify-self:start;text-align:left}
+  .stay .v{grid-row:span 2}
+}
+</style>
+</head>
+<body>
+
+<main id="lock" hidden>
+  <div class="lockcard">
+    <h1>Villa availability</h1>
+    <p class="muted" id="lockIntro">This page is private to the resort administrator.</p>
+    <form id="lockForm" autocomplete="on">
+      <label class="f"><span id="passLbl">Passcode</span><input id="pass" type="password" autocomplete="current-password" required></label>
+      <label class="f" id="pass2Row" hidden><span>Repeat passcode</span><input id="pass2" type="password" autocomplete="new-password"></label>
+      <p class="hint" id="lockHint" hidden>Use at least 8 characters. The passcode encrypts the stay data, so it cannot be recovered if you forget it.</p>
+      <button class="btn primary" id="lockBtn" type="submit">Unlock</button>
+      <p class="err" id="lockErr" role="alert" hidden></p>
+    </form>
+    <p class="hint" style="margin-top:18px" id="lockExtra"></p>
+  </div>
+</main>
+
+<main id="app" class="wrap" hidden>
+  <div class="top">
+    <div>
+      <h1>Villa availability</h1>
+      <p class="muted">Sib San Resort &amp; Spa · private to the administrator</p>
+    </div>
+    <div class="acts">
+      <a class="btn" id="mapLink" href="./">Open map</a>
+      <button class="btn" id="lockNow" type="button">Lock</button>
+    </div>
+  </div>
+  <div class="sync" id="sync" role="status"><i></i><span id="syncTxt"></span><button class="btn sm quiet" id="syncBtn" type="button" hidden>Sync now</button></div>
+
+  <div class="status">
+    <div class="counts">
+      <div class="o"><b id="nOcc">0</b><span>occupied</span></div>
+      <div class="a"><b id="nFree">0</b><span>available</span></div>
+    </div>
+    <div class="when">
+      <label for="viewDate">Show availability on</label>
+      <div class="row"><input type="date" id="viewDate"><button class="btn sm" id="todayBtn" type="button">Today</button></div>
+    </div>
+  </div>
+
+  <div class="rack" id="rack" aria-label="Villas"></div>
+  <div class="key"><span><i></i>Available</span><span><i class="o"></i>Occupied</span><span class="muted">Tap villas to select them for a new stay.</span></div>
+  <p class="detail" id="detail" aria-live="polite"></p>
+
+  <section class="blk" id="formBlk">
+    <h2 id="formTitle">Add a stay</h2>
+    <form class="card form" id="stayForm" novalidate>
+      <label class="f full"><span>Villas</span><input id="fVillas" inputmode="numeric" placeholder="1004, 1005" autocomplete="off"><span class="hint" style="font-weight:400">Separate several villas with commas, or tap them above.</span></label>
+      <div class="grid2">
+        <label class="f"><span>Check-in</span><input type="date" id="fIn" required></label>
+        <label class="f"><span>Check-out</span><input type="date" id="fOut" required></label>
+      </div>
+      <div class="grid2">
+        <label class="f"><span>Check-out time</span><input type="time" id="fOutTime" value="12:00"></label>
+        <label class="f"><span>Guest name (optional)</span><input id="fGuest" autocomplete="off"></label>
+      </div>
+      <label class="f full"><span>Note (optional)</span><textarea id="fNote"></textarea></label>
+      <div class="full">
+        <div class="actions">
+          <button class="btn primary" id="fSave" type="submit">Save stay</button>
+          <button class="btn" id="fCancel" type="button" hidden>Cancel edit</button>
+        </div>
+        <p class="err" id="fErr" role="alert" hidden></p>
+        <p class="hint">A villa is red from the check-in date until the check-out time, then green again.</p>
+      </div>
+    </form>
+  </section>
+
+  <section class="blk">
+    <h2>Stays</h2>
+    <div class="card">
+      <div class="tabs" role="group" aria-label="Which stays to list">
+        <button class="btn sm" id="tabNow" type="button" aria-pressed="true">Current and upcoming</button>
+        <button class="btn sm" id="tabPast" type="button" aria-pressed="false">Past</button>
+      </div>
+      <div id="stays"></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <details class="card" id="sharing">
+      <summary>Share across devices and security</summary>
+      <div class="stack">
+        <p>Stays are encrypted with your passcode before they are stored, so nobody can read them without it. Without the step below they are saved on this device only.</p>
+        <h3>Use the same data on every device</h3>
+        <ol>
+          <li>In GitHub open Settings, Developer settings, Personal access tokens, Fine-grained tokens, then Generate new token.</li>
+          <li>Under Repository access choose <b>Only select repositories</b> and pick <code id="repoName">sibsan-map</code>. Under Repository permissions set <b>Contents</b> to <b>Read and write</b>.</li>
+          <li>Paste the token here.</li>
+        </ol>
+        <label class="f"><span>GitHub token</span><input id="tokIn" type="password" autocomplete="off" placeholder="github_pat_…"></label>
+        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" id="tokSave" type="button">Save token and sync</button>
+          <button class="btn quiet danger" id="tokDel" type="button" hidden>Remove token</button>
+        </div>
+        <p id="tokMsg" role="status"></p>
+        <p class="hint">The token stays in this browser. Anyone with it can change the repository, so keep it to yourself. Devices without a token can still show the map colours after you unlock this page there; their changes stay on that device.</p>
+        <h3>Change passcode</h3>
+        <form class="stack" id="pwForm">
+          <label class="f"><span>New passcode</span><input id="pw1" type="password" autocomplete="new-password"></label>
+          <label class="f"><span>Repeat new passcode</span><input id="pw2" type="password" autocomplete="new-password"></label>
+          <div><button class="btn" type="submit">Change passcode</button></div>
+          <p id="pwMsg" role="status"></p>
+        </form>
+        <label class="f" style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="keep" style="width:auto;min-height:0"><span style="margin:0;font-weight:500">Keep this device unlocked so the map shows availability colours</span></label>
+      </div>
+    </details>
+  </section>
+</main>
+
+<main id="loading" class="wrap"><p class="muted">Loading…</p></main>
+
+<script>
+(()=>{
+'use strict';
+const VILLAS=["1001","1002","1003","1004","1005","1006","1007","1008","1009","1010","1011","1012","1013","1014","1015","1016","1017","1018","1019","2011","2012","2013","2021","2022","2023","2031","2032","2033","2041","2042","2043","2071","2072","2073","2074","2081","2082","2083","2084","2091","2092","2093","2101","2102","2103","2111","2112","2113","2121","2122","2123","2124","2131","2132","2133","2134","2141","2142","2143","2144","2151","2152","2153","2154","2161","2162","2163","2164","2171","2172","2173","2174"];
+const CFG={iter:250000,path:'occupancy.enc.json',defOutTime:'12:00'};
+const host=location.hostname,onPages=host.endsWith('.github.io');
+const OWNER=onPages?host.split('.')[0]:'jwee903-cmd';
+const REPO=onPages?(location.pathname.split('/')[1]||'sibsan-map'):'sibsan-map';
+const K={key:'sibsan-adm-key',blob:'sibsan-adm-blob',dirty:'sibsan-adm-dirty',token:'sibsan-adm-token',sha:'sibsan-adm-sha'};
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- encryption (PBKDF2 -> AES-GCM) ---------- */
+const te=new TextEncoder(),td=new TextDecoder();
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function deriveKey(pass,salt,iter){
+  const base=await crypto.subtle.importKey('raw',te.encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},true,['encrypt','decrypt']);}
+async function encryptJSON(key,obj){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(JSON.stringify(obj)));
+  return {iv:b64(iv),data:b64(new Uint8Array(ct))};}
+async function decryptJSON(key,iv,data){
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(iv)},key,unb64(data));
+  return JSON.parse(td.decode(pt));}
+const importKey=raw=>crypto.subtle.importKey('raw',unb64(raw),'AES-GCM',true,['encrypt','decrypt']);
+
+/* ---------- resort time (Bangkok) ---------- */
+function nowBKK(){
+  const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+    .formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value,o),{});
+  return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`};}
+const sStart=s=>s.in+'T00:00',sEnd=s=>s.out+'T'+(s.outTime||CFG.defOutTime);
+const isOcc=(s,at)=>sStart(s)<=at&&at<sEnd(s);
+const dayDiff=(a,b)=>Math.round((Date.UTC(...b.split('-').map((n,i)=>i==1?n-1:+n))-Date.UTC(...a.split('-').map((n,i)=>i==1?n-1:+n)))/864e5);
+const fmtD=d=>{const [y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd).toLocaleDateString('en-GB',{day:'numeric',month:'short'});};
+
+/* ---------- state ---------- */
+let KEY=null,SALT=null,META=null,DATA=null,SHA=store.get(K.sha)||null;
+let viewDate=null,editingId=null,tab='now',selected=new Set(),detailVilla=null,sync={s:'local',t:''},forceCreate=false;
+const today=()=>nowBKK().date;
+const atNow=()=>{const n=nowBKK();return viewDate===n.date?n.date+'T'+n.time:viewDate+'T12:00';};
+const token=()=>store.get(K.token)||'';
+
+/* ---------- storage (GitHub, with a copy on this device) ---------- */
+const apiUrl=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${CFG.path}`;
+const apiHead=()=>({Authorization:'Bearer '+token(),Accept:'application/vnd.github+json'});
+async function fetchRemote(){
+  try{
+    if(token()){
+      const r=await fetch(apiUrl,{headers:apiHead(),cache:'no-store'});
+      if(r.status===200){const j=await r.json();SHA=j.sha;store.set(K.sha,SHA);return {state:'ok',blob:JSON.parse(atob(j.content.replace(/\s/g,'')))};}
+      if(r.status===404){SHA=null;store.del(K.sha);return {state:'missing'};}
+    }
+    const r=await fetch('./'+CFG.path+'?t='+Date.now(),{cache:'no-store'});
+    if(r.status===404)return {state:'missing'};
+    if(!r.ok)return {state:'error'};
+    return {state:'ok',blob:await r.json()};
+  }catch(e){return {state:'error'};}}
+async function putRemote(blobText,retry){
+  const body={message:'Update villa availability',content:btoa(blobText)};
+  if(SHA)body.sha=SHA;
+  const r=await fetch(apiUrl,{method:'PUT',headers:{...apiHead(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(r.ok){const j=await r.json();SHA=j.content&&j.content.sha||null;if(SHA)store.set(K.sha,SHA);return {ok:true};}
+  if((r.status===409||r.status===422)&&!retry){
+    const g=await fetch(apiUrl,{headers:apiHead(),cache:'no-store'});
+    if(g.status===200){SHA=(await g.json()).sha;return putRemote(blobText,true);}
+    if(g.status===404){SHA=null;return putRemote(blobText,true);}}
+  let msg='GitHub returned '+r.status;
+  if(r.status===401)msg='GitHub rejected the token';
+  else if(r.status===403||r.status===404)msg='The token cannot write to '+OWNER+'/'+REPO+'. Check that Contents is set to Read and write';
+  return {ok:false,msg};}
+function setSync(s,t){sync={s,t};renderSync();}
+async function pushNow(){
+  const raw=store.get(K.blob);if(!raw)return;
+  if(!token()){setSync('local');return;}
+  setSync('busy','Syncing…');
+  try{
+    const r=await putRemote(raw);
+    if(r.ok){store.del(K.dirty);setSync('ok','Synced at '+nowBKK().time);}
+    else setSync('bad','Not synced. '+r.msg+'.');
+  }catch(e){setSync('bad','Not synced. No connection. Changes are saved on this device.');}}
+async function persist(){
+  DATA.updated=new Date().toISOString();
+  const e=await encryptJSON(KEY,DATA);
+  META={v:1,kdf:'PBKDF2-SHA256',iter:META&&META.iter||CFG.iter,salt:b64(SALT),iv:e.iv,data:e.data};
+  store.set(K.blob,JSON.stringify(META));store.set(K.dirty,'1');
+  await pushNow();}
+
+/* ---------- boot / lock ---------- */
+function show(id){for(const x of ['loading','lock','app'])$(x).hidden=x!==id;}
+async function boot(){
+  show('loading');
+  const r=await fetchRemote();
+  const localRaw=store.get(K.blob),dirty=store.get(K.dirty)==='1';
+  if(localRaw&&(dirty||r.state!=='ok'))META=JSON.parse(localRaw);
+  else if(r.state==='ok'){META=r.blob;store.set(K.blob,JSON.stringify(META));}
+  else META=null;
+  if(forceCreate)META=null;
+  if(!META&&r.state==='error'&&!forceCreate){lockScreen('retry');return;}
+  const saved=store.get(K.key);
+  if(META&&saved){
+    try{KEY=await importKey(saved);SALT=unb64(META.salt);DATA=await decryptJSON(KEY,META.iv,META.data);enter();return;}
+    catch(e){store.del(K.key);KEY=null;}}
+  lockScreen(META?'unlock':'create');}
+function lockScreen(mode){
+  show('lock');
+  const create=mode==='create',retry=mode==='retry';
+  $('lockForm').dataset.mode=mode;
+  $('pass2Row').hidden=!create;$('lockHint').hidden=!create;$('pass').value='';$('pass2').value='';
+  $('pass').autocomplete=create?'new-password':'current-password';
+  $('pass').closest('label').hidden=retry;
+  $('lockBtn').textContent=create?'Create passcode':retry?'Try again':'Unlock';
+  $('lockIntro').textContent=create?'Choose a passcode to set up the villa availability page. Only people who know it can read or change the stays.':retry?'The saved stays could not be loaded. Check the connection and try again.':'This page is private to the resort administrator.';
+  $('lockErr').hidden=true;
+  $('lockExtra').innerHTML=mode==='unlock'?'Forgot the passcode? <a href="#" id="resetLink">Start over with a new one</a>. Existing stays cannot be recovered.':'';
+  const rl=$('resetLink');if(rl)rl.onclick=e=>{e.preventDefault();if(confirm('Erase the saved stays and set a new passcode? This cannot be undone.')){['blob','dirty','key','sha'].forEach(k=>store.del(K[k]));forceCreate=true;SHA=null;boot();}};
+  setTimeout(()=>{(retry?$('lockBtn'):$('pass')).focus();},30);}
+function lockErr(t){const e=$('lockErr');e.textContent=t;e.hidden=false;}
+$('lockForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();$('lockErr').hidden=true;
+  const mode=$('lockForm').dataset.mode,pass=$('pass').value;
+  if(mode==='retry'){boot();return;}
+  $('lockBtn').disabled=true;
+  try{
+    if(mode==='create'){
+      if(pass.length<8){lockErr('Use at least 8 characters.');return;}
+      if(pass!==$('pass2').value){lockErr('The two passcodes do not match.');return;}
+      SALT=crypto.getRandomValues(new Uint8Array(16));
+      KEY=await deriveKey(pass,SALT,CFG.iter);META=null;
+      DATA={v:1,stays:[],updated:''};forceCreate=false;
+      await rememberKey();enter();await persist();
+    }else{
+      const salt=unb64(META.salt),key=await deriveKey(pass,salt,META.iter||CFG.iter);
+      try{DATA=await decryptJSON(key,META.iv,META.data);}catch(e){lockErr('That passcode is not right.');return;}
+      KEY=key;SALT=salt;await rememberKey();enter();}
+  }finally{$('lockBtn').disabled=false;}});
+async function rememberKey(){
+  if(!KEY)return;
+  if($('keep').checked){store.set(K.key,b64(new Uint8Array(await crypto.subtle.exportKey('raw',KEY))));}
+  else store.del(K.key);}
+$('keep').checked=true;
+$('keep').addEventListener('change',rememberKey);
+$('lockNow').onclick=()=>{store.del(K.key);KEY=null;DATA=null;lockScreen('unlock');};
+
+/* ---------- main view ---------- */
+function enter(){
+  show('app');
+  viewDate=today();$('viewDate').value=viewDate;
+  $('repoName').textContent=REPO;$('mapLink').href='./';
+  $('tokDel').hidden=!token();
+  resetForm();render();
+  if(store.get(K.dirty)==='1'&&token())pushNow();else if(!token())setSync('local');else setSync('ok','Synced');}
+function zoneOf(v){const n=+v;return n<2000?['Pool garden']:n<2050?['West riverside']:n<2120?['Central, west of the stream']:['East, beside the stream'];}
+function staysOf(v){return DATA.stays.filter(s=>s.villa===v).sort((a,b)=>sStart(a).localeCompare(sStart(b)));}
+function statusOf(v,at){
+  const list=staysOf(v),cur=list.find(s=>isOcc(s,at)),next=list.find(s=>sStart(s)>at);
+  return {cur,next};}
+function render(){renderRack();renderStays();renderDetail();renderSync();}
+function renderRack(){
+  const at=atNow(),zones=new Map();let occ=0;
+  for(const v of VILLAS){
+    const z=zoneOf(v)[0];if(!zones.has(z))zones.set(z,[]);
+    const st=statusOf(v,at);if(st.cur)occ++;zones.get(z).push([v,st]);}
+  $('nOcc').textContent=occ;$('nFree').textContent=VILLAS.length-occ;
+  $('rack').innerHTML=[...zones].map(([z,list])=>{
+    const occN=list.filter(x=>x[1].cur).length;
+    return `<div class="zone"><h3>${esc(z)}<small>${occN} of ${list.length} occupied</small></h3><div class="tiles">`+list.map(([v,st])=>{
+      const sub=st.cur?(st.cur.guest?esc(st.cur.guest.split(/\s+/)[0]):'In use'):'';
+      const label=`Villa ${v}, ${st.cur?'occupied until '+fmtD(st.cur.out):'available'+(st.next?', next arrival '+fmtD(st.next.in):'')}`;
+      return `<button type="button" class="tile${st.cur?' occ':''}${selected.has(v)?' sel':''}" data-v="${v}" aria-label="${esc(label)}" aria-pressed="${selected.has(v)}">${v}<small>${sub||'&nbsp;'}</small></button>`;}).join('')+`</div></div>`;}).join('');
+  $('rack').querySelectorAll('.tile').forEach(b=>b.onclick=()=>pickVilla(b.dataset.v));}
+function pickVilla(v){
+  detailVilla=v;
+  if(editingId)cancelEdit();
+  if(selected.has(v))selected.delete(v);else selected.add(v);
+  $('fVillas').value=[...selected].sort().join(', ');
+  render();}
+function renderDetail(){
+  const v=detailVilla;const box=$('detail');
+  if(!v){box.innerHTML='';return;}
+  const at=atNow(),{cur,next}=statusOf(v,at);
+  let h=`<b>Villa ${v}</b> is `;
+  if(cur){h+=`<b style="color:var(--occ)">occupied</b>${cur.guest?' by '+esc(cur.guest):''}, ${fmtD(cur.in)} to ${fmtD(cur.out)} at ${esc(cur.outTime||CFG.defOutTime)}. <button class="btn sm" type="button" data-edit="${cur.id}">Edit stay</button>`;}
+  else{h+=`<b style="color:var(--free)">available</b>`;if(next)h+=`. Next arrival ${fmtD(next.in)}${next.guest?' ('+esc(next.guest)+')':''}. <button class="btn sm" type="button" data-edit="${next.id}">Edit stay</button>`;else h+='.';}
+  box.innerHTML=h;
+  const eb=box.querySelector('[data-edit]');if(eb)eb.onclick=()=>startEdit(eb.dataset.edit);}
+function stayStatus(s){
+  const n=nowBKK(),now=n.date+'T'+n.time;
+  if(now>=sEnd(s))return ['past','Ended'];
+  if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon',d===1?'Arrives tomorrow':'Arrives in '+d+' days'];}
+  if(s.out===n.date)return ['in','Leaves today at '+(s.outTime||CFG.defOutTime)];
+  const d=dayDiff(n.date,s.out);return ['in','In house, leaves in '+d+(d===1?' day':' days')];}
+function renderStays(){
+  const n=nowBKK(),now=n.date+'T'+n.time;
+  const all=DATA.stays.slice().sort((a,b)=>sStart(a).localeCompare(sStart(b))||a.villa.localeCompare(b.villa));
+  const list=tab==='now'?all.filter(s=>now<sEnd(s)):all.filter(s=>now>=sEnd(s)).reverse();
+  $('tabNow').setAttribute('aria-pressed',tab==='now');$('tabPast').setAttribute('aria-pressed',tab==='past');
+  if(!list.length){$('stays').innerHTML=`<p class="empty">${tab==='now'?'No current or upcoming stays. Select villas above and save a stay to start.':'No past stays yet.'}</p>`;return;}
+  $('stays').innerHTML=list.map(s=>{
+    const [cls,txt]=stayStatus(s),nights=dayDiff(s.in,s.out);
+    return `<div class="stay"><div class="v">${esc(s.villa)}</div>
+      <div><div class="who">${s.guest?esc(s.guest):'<span class="muted">No guest name</span>'}</div><div class="when2 num">${fmtD(s.in)} to ${fmtD(s.out)}, ${nights} ${nights===1?'night':'nights'}</div></div>
+      <div class="st ${cls}">${esc(txt)}</div>
+      ${s.note?`<div class="nt">${esc(s.note)}</div>`:''}
+      <div class="tools"><button class="btn sm" type="button" data-edit="${s.id}">Edit</button>${cls==='in'?`<button class="btn sm" type="button" data-end="${s.id}">Check out now</button>`:''}<button class="btn sm danger" type="button" data-del="${s.id}">Delete</button></div></div>`;}).join('');
+  $('stays').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>startEdit(b.dataset.edit));
+  $('stays').querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>endNow(b.dataset.end));
+  $('stays').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delStay(b.dataset.del));}
+function renderSync(){
+  const el=$('sync'),t=$('syncTxt'),dirty=store.get(K.dirty)==='1',tok=!!token();
+  el.className='sync';
+  if(sync.s==='busy'){t.textContent=sync.t;}
+  else if(sync.s==='bad'){el.classList.add('bad');t.textContent=sync.t;}
+  else if(!tok){el.classList.add('warn');t.textContent='Saved on this device only. Add a GitHub token under “Share across devices and security” to use it elsewhere.';}
+  else if(dirty){el.classList.add('warn');t.textContent='Changes are not synced yet.';}
+  else{el.classList.add('ok');t.textContent=sync.t||'Synced';}
+  $('syncBtn').hidden=!(tok&&dirty&&sync.s!=='busy');}
+$('syncBtn').onclick=()=>pushNow();
+
+/* ---------- stays: add / edit / delete ---------- */
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2));
+function resetForm(){
+  editingId=null;const t=today();
+  $('fVillas').value=[...selected].sort().join(', ');
+  $('fIn').value=t;const d=new Date(t+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);$('fOut').value=d.toISOString().slice(0,10);
+  $('fOutTime').value=CFG.defOutTime;$('fGuest').value='';$('fNote').value='';
+  $('formTitle').textContent='Add a stay';$('fSave').textContent='Save stay';$('fCancel').hidden=true;$('fErr').hidden=true;}
+function startEdit(id){
+  const s=DATA.stays.find(x=>x.id===id);if(!s)return;
+  editingId=id;selected=new Set();
+  $('fVillas').value=s.villa;$('fIn').value=s.in;$('fOut').value=s.out;$('fOutTime').value=s.outTime||CFG.defOutTime;
+  $('fGuest').value=s.guest||'';$('fNote').value=s.note||'';
+  $('formTitle').textContent='Edit stay for villa '+s.villa;$('fSave').textContent='Update stay';$('fCancel').hidden=false;$('fErr').hidden=true;
+  render();$('formBlk').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}
+function cancelEdit(){resetForm();render();}
+$('fCancel').onclick=cancelEdit;
+function formErr(t){const e=$('fErr');e.textContent=t;e.hidden=false;}
+$('stayForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();$('fErr').hidden=true;
+  const vs=[...new Set($('fVillas').value.split(/[\s,;]+/).filter(Boolean))];
+  const inD=$('fIn').value,outD=$('fOut').value,outT=$('fOutTime').value||CFG.defOutTime;
+  if(!vs.length)return formErr('Enter at least one villa number, or tap villas above.');
+  const bad=vs.filter(v=>!VILLAS.includes(v));
+  if(bad.length)return formErr((bad.length>1?'These are not villa numbers: ':'This is not a villa number: ')+bad.join(', ')+'. Villas run 1001–1019 and 2011–2174.');
+  if(editingId&&vs.length>1)return formErr('Edit one villa at a time.');
+  if(!inD||!outD)return formErr('Choose both a check-in and a check-out date.');
+  if(outD<=inD)return formErr('Check-out must be after check-in.');
+  const cand={in:inD,out:outD,outTime:outT};
+  for(const v of vs){
+    const clash=DATA.stays.find(s=>s.villa===v&&s.id!==editingId&&sStart(s)<sEnd(cand)&&sStart(cand)<sEnd(s));
+    if(clash)return formErr(`Villa ${v} already has a stay from ${fmtD(clash.in)} to ${fmtD(clash.out)}. Change the dates or edit that stay.`);}
+  const guest=$('fGuest').value.trim(),note=$('fNote').value.trim();
+  if(editingId){const s=DATA.stays.find(x=>x.id===editingId);Object.assign(s,{villa:vs[0],in:inD,out:outD,outTime:outT,guest,note});}
+  else vs.forEach(v=>DATA.stays.push({id:uid(),villa:v,in:inD,out:outD,outTime:outT,guest,note}));
+  const first=vs[0];selected=new Set();detailVilla=first;resetForm();render();
+  await persist();renderSync();});
+async function endNow(id){
+  const s=DATA.stays.find(x=>x.id===id);if(!s)return;const n=nowBKK();
+  s.out=n.date;s.outTime=n.time;
+  render();await persist();renderSync();}
+async function delStay(id){
+  const s=DATA.stays.find(x=>x.id===id);if(!s)return;
+  if(!confirm(`Delete the stay for villa ${s.villa}${s.guest?' ('+s.guest+')':''}, ${fmtD(s.in)} to ${fmtD(s.out)}?`))return;
+  DATA.stays=DATA.stays.filter(x=>x.id!==id);if(editingId===id)resetForm();render();await persist();renderSync();}
+$('tabNow').onclick=()=>{tab='now';renderStays();};
+$('tabPast').onclick=()=>{tab='past';renderStays();};
+$('viewDate').onchange=()=>{viewDate=$('viewDate').value||today();render();};
+$('todayBtn').onclick=()=>{viewDate=today();$('viewDate').value=viewDate;render();};
+
+/* ---------- sharing & passcode ---------- */
+$('tokSave').onclick=async()=>{
+  const v=$('tokIn').value.trim(),m=$('tokMsg');m.className='';
+  if(!v){m.className='err';m.textContent='Paste the token first.';return;}
+  store.set(K.token,v);$('tokIn').value='';$('tokDel').hidden=false;m.textContent='Checking…';
+  try{
+    const r=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}`,{headers:apiHead()});
+    if(r.status===401){store.del(K.token);$('tokDel').hidden=true;m.className='err';m.textContent='GitHub rejected that token. Check that it was copied in full.';return;}
+    const j=r.ok?await r.json():null;
+    if(!j||!j.permissions||!j.permissions.push){m.className='err';m.textContent=`This token cannot write to ${OWNER}/${REPO}. Give it Repository access to this repository with Contents set to Read and write.`;return;}
+    m.className='ok';m.textContent='Token accepted.';
+    const rem=await fetchRemote();
+    let merged=0;
+    if(rem.state==='ok'&&rem.blob&&rem.blob.data){
+      try{const d=await decryptJSON(KEY,rem.blob.iv,rem.blob.data),have=new Set(DATA.stays.map(x=>x.id));
+        for(const st of d.stays||[])if(!have.has(st.id)){DATA.stays.push(st);merged++;}
+      }catch(e){m.className='err';m.textContent='The stays already on GitHub use a different passcode, so they were not combined. Unlock with that passcode, or delete occupancy.enc.json from the repository to start fresh.';return;}}
+    store.set(K.dirty,'1');await persist();render();
+    m.className='ok';m.textContent=merged?`Token accepted. Combined ${merged} stay${merged===1?'':'s'} already shared.`:'Token accepted. Stays are now shared.';
+  }catch(e){m.className='err';m.textContent='Could not reach GitHub. Check the connection and try again.';}};
+$('tokDel').onclick=()=>{store.del(K.token);store.del(K.sha);SHA=null;$('tokDel').hidden=true;$('tokMsg').className='';$('tokMsg').textContent='Token removed from this device.';setSync('local');renderSync();};
+$('pwForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();const m=$('pwMsg'),a=$('pw1').value,b=$('pw2').value;m.className='err';
+  if(a.length<8){m.textContent='Use at least 8 characters.';return;}
+  if(a!==b){m.textContent='The two passcodes do not match.';return;}
+  SALT=crypto.getRandomValues(new Uint8Array(16));KEY=await deriveKey(a,SALT,CFG.iter);
+  await rememberKey();await persist();$('pw1').value=$('pw2').value='';
+  m.className='ok';m.textContent='Passcode changed. Use the new one on your other devices.';renderSync();});
+
+/* keep resort time fresh (check-out time passes while the page is open) */
+setInterval(()=>{if(!$('app').hidden&&viewDate===today()){render();}},60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!$('app').hidden)render();});
+boot();
+})();
+</script>
+</body>
+</html>
