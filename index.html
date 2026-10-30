@@ -386,6 +386,8 @@ body.walking .legend,body.walking .hint,body.walking .peek{display:none}
         <span id="legVillaKey"><span class="dot" style="background:#0f6b6f"></span> <span data-i18n="legVilla">Villa</span></span>
         <span id="legFree" hidden><span class="dot" style="background:#1f8a4c"></span> Available</span>
         <span id="legOcc" hidden><span class="dot" style="background:#c62839"></span> Occupied</span>
+        <span id="legOoo" hidden><span class="dot" style="background:#e08a00"></span> Out of order</span>
+        <span id="legOos" hidden><span class="dot" style="background:#7b4fb3"></span> Out of service</span>
         <a class="admpill" id="legAdm" href="admin.html" hidden>Admin view</a>
         <span><span class="dot" style="background:#9a5b2c;border-radius:2px"></span> <span data-i18n="legVenue">Venue</span></span>
       </div>
@@ -1375,25 +1377,30 @@ function occBKK(){
 const occEnd=s=>s.out+"T"+(s.outTime||"12:00");
 const occIs=(s,at)=>s.in+"T00:00"<=at&&at<occEnd(s);
 const occDay=d=>{const[y,m,dd]=d.split("-").map(Number);return new Date(y,m-1,dd).toLocaleDateString("en-GB",{day:"numeric",month:"short"});};
+const occKind=s=>s.kind==="ooo"||s.kind==="oos"?s.kind:"stay";
+const OCCK={stay:{c:"#c62839",t:"#c62839",name:"Occupied"},ooo:{c:"#e08a00",t:"#9a5800",name:"Out of order"},oos:{c:"#7b4fb3",t:"#6d3fa8",name:"Out of service"}};
 function occStatus(v){
   const at=occBKK(),list=OCC.stays.filter(s=>s.villa===v).sort((a,b)=>a.in.localeCompare(b.in));
   return {cur:list.find(s=>occIs(s,at)),next:list.find(s=>s.in+"T00:00">at)};}
 function occLine(v,tag){
   if(!OCC.on||!OCC.loaded)return "";
   const {cur,next}=occStatus(v);let t;
-  if(cur)t="Occupied"+(cur.guest?" by "+cur.guest:"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00");
-  else t="Available"+(next?" · next arrival "+occDay(next.in):"");
-  return `<${tag} class="occline" style="color:${cur?"#c62839":"#1f8a4c"}">${esc(t)}</${tag}>`;}
+  if(cur){const k=occKind(cur);
+    t=k==="stay"?"Occupied"+(cur.guest?" by "+cur.guest:"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00"):OCCK[k].name+(cur.reason?" ("+cur.reason+")":"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00");}
+  else t="Available"+(next?(occKind(next)==="stay"?" · next arrival ":" · "+OCCK[occKind(next)].name.toLowerCase()+" from ")+occDay(next.in):"");
+  return `<${tag} class="occline" style="color:${cur?OCCK[occKind(cur)].t:"#1f8a4c"}">${esc(t)}</${tag}>`;}
 function applyOcc(){
   if(!OCC.on)return;
+  const seen={};
   for(const v of villas){
     const g=mk.querySelector(`[data-k="v:${v}"]`);if(!g)continue;
     const dot=g.querySelectorAll("circle")[1];if(!dot)continue;
     if(!OCC.loaded){dot.setAttribute("fill","#0f6b6f");dot.setAttribute("r","4.2");continue;}
     const {cur}=occStatus(v);
-    dot.setAttribute("fill",cur?"#c62839":"#1f8a4c");dot.setAttribute("r",cur?"5.6":"4.2");
-    const t=g.querySelector("title");if(t)t.textContent=T("villa",{n:v})+" · "+(cur?"Occupied":"Available");}
-  $("legVillaKey").hidden=OCC.loaded;$("legFree").hidden=!OCC.loaded;$("legOcc").hidden=!OCC.loaded;$("legAdm").hidden=false;
+    const ck=cur?occKind(cur):"";if(ck)seen[ck]=1;
+    dot.setAttribute("fill",cur?OCCK[ck].c:"#1f8a4c");dot.setAttribute("r",cur?"5.6":"4.2");
+    const t=g.querySelector("title");if(t)t.textContent=T("villa",{n:v})+" · "+(cur?OCCK[ck].name:"Available");}
+  $("legVillaKey").hidden=OCC.loaded;$("legFree").hidden=!OCC.loaded;$("legOcc").hidden=!OCC.loaded;$("legOoo").hidden=!(OCC.loaded&&seen.ooo);$("legOos").hidden=!(OCC.loaded&&seen.oos);$("legAdm").hidden=false;
   $("legAdm").textContent=OCC.loaded?"Admin view":"Admin view · no data";}
 async function occLoad(){
   const raw=occLS("sibsan-adm-key");if(!raw||!window.crypto||!crypto.subtle)return;

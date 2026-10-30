@@ -11,6 +11,7 @@
   --bg:#f3f1ea; --panel:#fffdf7; --ink:#1f2a27; --muted:#66706b; --line:#dcd7c8; --shade:rgba(31,42,39,.06);
   --river:#0f6b6f; --on-river:#fff; --teak:#9a5b2c;
   --free:#1f8a4c; --free-bg:rgba(31,138,76,.08); --occ:#c62839; --occ-bg:#c62839; --on-occ:#fff;
+  --ooo:#b86e00; --ooo-bg:#e08a00; --on-ooo:#1b1200; --oos:#6d3fa8; --oos-bg:#7b4fb3; --on-oos:#fff;
   --f-display:"Marcellus","Cormorant Garamond",Georgia,serif;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -18,7 +19,8 @@
 @media (prefers-color-scheme: dark){:root{
   --bg:#141a19; --panel:#1c2422; --ink:#e9ece6; --muted:#9aa59f; --line:#2f3a37; --shade:rgba(255,255,255,.05);
   --river:#5fb8b1; --on-river:#0d1413; --teak:#d39a6a;
-  --free:#58c585; --free-bg:rgba(88,197,133,.1); --occ:#ef6a78; --occ-bg:#b8283a; --on-occ:#fff; color-scheme:dark}}
+  --free:#58c585; --free-bg:rgba(88,197,133,.1); --occ:#ef6a78; --occ-bg:#b8283a; --on-occ:#fff;
+  --ooo:#f0b04d; --ooo-bg:#d98a00; --on-ooo:#1b1200; --oos:#b99be3; --oos-bg:#7b4fb3; --on-oos:#fff; color-scheme:dark}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
@@ -65,7 +67,7 @@ textarea{min-height:70px;resize:vertical}
 .status{display:flex;flex-wrap:wrap;align-items:end;gap:14px 28px;margin:22px 0 6px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
 .counts{display:flex;gap:26px}
 .counts b{font:400 38px/1 var(--f-display);display:block}
-.counts .o b{color:var(--occ)} .counts .a b{color:var(--free)}
+.counts .o b{color:var(--occ)} .counts .a b{color:var(--free)} .counts .u b{color:var(--ooo)}
 .counts span{font-size:13px;color:var(--muted)}
 .when{margin-left:auto;min-width:190px}
 .when label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
@@ -80,12 +82,16 @@ textarea{min-height:70px;resize:vertical}
 .tile{position:relative;appearance:none;border:2px solid var(--free);background:var(--free-bg);color:var(--free);border-radius:7px 7px 10px 10px;padding:15px 0 8px;font:400 18px/1 var(--f-display);cursor:pointer;min-height:54px}
 .tile::before{content:"";position:absolute;top:5px;left:50%;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;border:1.5px solid currentColor;opacity:.7}
 .tile.occ{background:var(--occ-bg);border-color:var(--occ-bg);color:var(--on-occ)}
+.tile.ooo{background:var(--ooo-bg);border-color:var(--ooo-bg);color:var(--on-ooo)}
+.tile.oos{background:var(--oos-bg);border-color:var(--oos-bg);color:var(--on-oos)}
 .tile.sel{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--river)}
 .tile small{display:block;font:500 10px/1.2 var(--f-body);margin-top:4px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 3px}
 .key{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:14px;align-items:center;flex-wrap:wrap}
 .key span{display:inline-flex;align-items:center;gap:7px}
 .key i{width:16px;height:12px;border-radius:3px;display:inline-block;border:2px solid var(--free);background:var(--free-bg)}
 .key i.o{background:var(--occ-bg);border-color:var(--occ-bg)}
+.key i.ooo{background:var(--ooo-bg);border-color:var(--ooo-bg)}
+.key i.oos{background:var(--oos-bg);border-color:var(--oos-bg)}
 .detail{margin-top:12px;min-height:22px;font-size:14px}
 
 /* form + list */
@@ -105,9 +111,11 @@ section.blk>h2{margin-bottom:12px}
 .stay .who{font-weight:600}
 .stay .when2{font-size:13px;color:var(--muted)}
 .stay .st{font-size:13px;font-weight:600;justify-self:end;text-align:right}
-.stay .st.in{color:var(--occ)} .stay .st.soon{color:var(--teak)} .stay .st.past{color:var(--muted)}
+.stay .st.blk{color:var(--ooo)} .stay .st.in{color:var(--occ)} .stay .st.soon{color:var(--teak)} .stay .st.past{color:var(--muted)}
 .stay .tools{grid-column:2/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .stay .nt{grid-column:2/-1;font-size:13px;color:var(--muted)}
+.badge{display:inline-block;font:700 11px/1 var(--f-body);letter-spacing:.03em;text-transform:uppercase;padding:4px 7px;border-radius:5px;margin-right:7px;vertical-align:1px}
+.badge.ooo{background:var(--ooo-bg);color:var(--on-ooo)} .badge.oos{background:var(--oos-bg);color:var(--on-oos)}
 .empty{padding:18px 4px;color:var(--muted)}
 details.card summary{cursor:pointer;font:400 19px var(--f-display);list-style:revert}
 details.card[open] summary{margin-bottom:12px}
@@ -157,6 +165,7 @@ code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radiu
     <div class="counts">
       <div class="o"><b id="nOcc">0</b><span>occupied</span></div>
       <div class="a"><b id="nFree">0</b><span>available</span></div>
+      <div class="u" id="nBlkBox" hidden><b id="nBlk">0</b><span>out of order / service</span></div>
     </div>
     <div class="when">
       <label for="viewDate">Show availability on</label>
@@ -165,20 +174,21 @@ code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radiu
   </div>
 
   <div class="rack" id="rack" aria-label="Villas"></div>
-  <div class="key"><span><i></i>Available</span><span><i class="o"></i>Occupied</span><span class="muted">Tap villas to select them for a new stay.</span></div>
+  <div class="key"><span><i></i>Available</span><span><i class="o"></i>Occupied</span><span><i class="ooo"></i>Out of order</span><span><i class="oos"></i>Out of service</span><span class="muted">Tap villas to select them.</span></div>
   <p class="detail" id="detail" aria-live="polite"></p>
 
   <section class="blk" id="formBlk">
     <h2 id="formTitle">Add a stay</h2>
     <form class="card form" id="stayForm" novalidate>
+      <label class="f full"><span>Type</span><select id="fKind"><option value="stay">Guest stay</option><option value="ooo">Out of Order (repairs, not usable)</option><option value="oos">Out of Service (cleaning, not for sale)</option></select></label>
       <label class="f full"><span>Villas</span><input id="fVillas" inputmode="numeric" placeholder="1004, 1005" autocomplete="off"><span class="hint" style="font-weight:400">Separate several villas with commas, or tap them above.</span></label>
       <div class="grid2">
-        <label class="f"><span>Check-in</span><input type="date" id="fIn" required></label>
-        <label class="f"><span>Check-out</span><input type="date" id="fOut" required></label>
+        <label class="f"><span id="lIn">Check-in</span><input type="date" id="fIn" required></label>
+        <label class="f"><span id="lOut">Check-out</span><input type="date" id="fOut" required></label>
       </div>
       <div class="grid2">
-        <label class="f"><span>Check-out time</span><input type="time" id="fOutTime" value="12:00"></label>
-        <label class="f"><span>Guest name (optional)</span><input id="fGuest" autocomplete="off"></label>
+        <label class="f"><span id="lOutTime">Check-out time</span><input type="time" id="fOutTime" value="12:00"></label>
+        <label class="f"><span id="lGuest">Guest name (optional)</span><input id="fGuest" autocomplete="off"></label>
       </div>
       <label class="f full"><span>Note (optional)</span><textarea id="fNote"></textarea></label>
       <div class="full">
@@ -187,7 +197,7 @@ code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radiu
           <button class="btn" id="fCancel" type="button" hidden>Cancel edit</button>
         </div>
         <p class="err" id="fErr" role="alert" hidden></p>
-        <p class="hint">A villa is red from the check-in date until the check-out time, then green again.</p>
+        <p class="hint" id="kindHint">A villa is red from the check-in date until the check-out time, then green again.</p>
       </div>
     </form>
   </section>
@@ -272,6 +282,9 @@ function nowBKK(){
   return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`};}
 const sStart=s=>s.in+'T00:00',sEnd=s=>s.out+'T'+(s.outTime||CFG.defOutTime);
 const isOcc=(s,at)=>sStart(s)<=at&&at<sEnd(s);
+const kindOf=s=>s.kind==='ooo'||s.kind==='oos'?s.kind:'stay';
+const KIND={stay:{name:'Guest stay',cls:'occ',word:'occupied'},ooo:{name:'Out of Order',cls:'ooo',word:'out of order'},oos:{name:'Out of Service',cls:'oos',word:'out of service'}};
+const isBlk=s=>kindOf(s)!=='stay';
 const dayDiff=(a,b)=>Math.round((Date.UTC(...b.split('-').map((n,i)=>i==1?n-1:+n))-Date.UTC(...a.split('-').map((n,i)=>i==1?n-1:+n)))/864e5);
 const fmtD=d=>{const [y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd).toLocaleDateString('en-GB',{day:'numeric',month:'short'});};
 
@@ -398,17 +411,17 @@ function statusOf(v,at){
   return {cur,next};}
 function render(){renderRack();renderStays();renderDetail();renderSync();}
 function renderRack(){
-  const at=atNow(),zones=new Map();let occ=0;
+  const at=atNow(),zones=new Map();let occ=0,blk=0;
   for(const v of VILLAS){
     const z=zoneOf(v)[0];if(!zones.has(z))zones.set(z,[]);
-    const st=statusOf(v,at);if(st.cur)occ++;zones.get(z).push([v,st]);}
-  $('nOcc').textContent=occ;$('nFree').textContent=VILLAS.length-occ;
+    const st=statusOf(v,at);if(st.cur){if(isBlk(st.cur))blk++;else occ++;}zones.get(z).push([v,st]);}
+  $('nOcc').textContent=occ;$('nFree').textContent=VILLAS.length-occ-blk;$('nBlk').textContent=blk;$('nBlkBox').hidden=!blk;
   $('rack').innerHTML=[...zones].map(([z,list])=>{
-    const occN=list.filter(x=>x[1].cur).length;
-    return `<div class="zone"><h3>${esc(z)}<small>${occN} of ${list.length} occupied</small></h3><div class="tiles">`+list.map(([v,st])=>{
-      const sub=st.cur?(st.cur.guest?esc(st.cur.guest.split(/\s+/)[0]):'In use'):'';
-      const label=`Villa ${v}, ${st.cur?'occupied until '+fmtD(st.cur.out):'available'+(st.next?', next arrival '+fmtD(st.next.in):'')}`;
-      return `<button type="button" class="tile${st.cur?' occ':''}${selected.has(v)?' sel':''}" data-v="${v}" aria-label="${esc(label)}" aria-pressed="${selected.has(v)}">${v}<small>${sub||'&nbsp;'}</small></button>`;}).join('')+`</div></div>`;}).join('');
+    const occN=list.filter(x=>x[1].cur&&!isBlk(x[1].cur)).length,blkN=list.filter(x=>x[1].cur&&isBlk(x[1].cur)).length;
+    return `<div class="zone"><h3>${esc(z)}<small>${occN} of ${list.length} occupied${blkN?', '+blkN+' unavailable':''}</small></h3><div class="tiles">`+list.map(([v,st])=>{
+      const ck=st.cur?kindOf(st.cur):'',sub=st.cur?(ck==='ooo'?'OOO':ck==='oos'?'OOS':(st.cur.guest?esc(st.cur.guest.split(/\s+/)[0]):'In use')):'';
+      const label=`Villa ${v}, ${st.cur?KIND[ck].word+' until '+fmtD(st.cur.out):'available'+(st.next?', next '+(isBlk(st.next)?KIND[kindOf(st.next)].word+' from ':'arrival ')+fmtD(st.next.in):'')}`;
+      return `<button type="button" class="tile${st.cur?' '+KIND[ck].cls:''}${selected.has(v)?' sel':''}" data-v="${v}" aria-label="${esc(label)}" aria-pressed="${selected.has(v)}">${v}<small>${sub||'&nbsp;'}</small></button>`;}).join('')+`</div></div>`;}).join('');
   $('rack').querySelectorAll('.tile').forEach(b=>b.onclick=()=>pickVilla(b.dataset.v));}
 function pickVilla(v){
   detailVilla=v;
@@ -421,13 +434,17 @@ function renderDetail(){
   if(!v){box.innerHTML='';return;}
   const at=atNow(),{cur,next}=statusOf(v,at);
   let h=`<b>Villa ${v}</b> is `;
-  if(cur){h+=`<b style="color:var(--occ)">occupied</b>${cur.guest?' by '+esc(cur.guest):''}, ${fmtD(cur.in)} to ${fmtD(cur.out)} at ${esc(cur.outTime||CFG.defOutTime)}. <button class="btn sm" type="button" data-edit="${cur.id}">Edit stay</button>`;}
-  else{h+=`<b style="color:var(--free)">available</b>`;if(next)h+=`. Next arrival ${fmtD(next.in)}${next.guest?' ('+esc(next.guest)+')':''}. <button class="btn sm" type="button" data-edit="${next.id}">Edit stay</button>`;else h+='.';}
+  if(cur){const b=isBlk(cur),k=kindOf(cur);h+=b?`<b style="color:var(--${k})">${KIND[k].word}</b>${cur.reason?' ('+esc(cur.reason)+')':''}, ${fmtD(cur.in)} to ${fmtD(cur.out)}, back at ${esc(cur.outTime||CFG.defOutTime)}. `:`<b style="color:var(--occ)">occupied</b>${cur.guest?' by '+esc(cur.guest):''}, ${fmtD(cur.in)} to ${fmtD(cur.out)} at ${esc(cur.outTime||CFG.defOutTime)}. `;h+=`<button class="btn sm" type="button" data-edit="${cur.id}">Edit</button>`;}
+  else{h+=`<b style="color:var(--free)">available</b>`;if(next){const b=isBlk(next);h+=b?`. ${KIND[kindOf(next)].name} from ${fmtD(next.in)}${next.reason?' ('+esc(next.reason)+')':''}. `:`. Next arrival ${fmtD(next.in)}${next.guest?' ('+esc(next.guest)+')':''}. `;h+=`<button class="btn sm" type="button" data-edit="${next.id}">Edit</button>`;}else h+='.';}
   box.innerHTML=h;
   const eb=box.querySelector('[data-edit]');if(eb)eb.onclick=()=>startEdit(eb.dataset.edit);}
 function stayStatus(s){
   const n=nowBKK(),now=n.date+'T'+n.time;
   if(now>=sEnd(s))return ['past','Ended'];
+  if(isBlk(s)){
+    if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon','Starts '+(d===1?'tomorrow':'in '+d+' days')];}
+    if(s.out===n.date)return ['blk','Back in service today at '+(s.outTime||CFG.defOutTime)];
+    const d=dayDiff(n.date,s.out);return ['blk','Back in service in '+d+(d===1?' day':' days')];}
   if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon',d===1?'Arrives tomorrow':'Arrives in '+d+' days'];}
   if(s.out===n.date)return ['in','Leaves today at '+(s.outTime||CFG.defOutTime)];
   const d=dayDiff(n.date,s.out);return ['in','In house, leaves in '+d+(d===1?' day':' days')];}
@@ -436,14 +453,15 @@ function renderStays(){
   const all=DATA.stays.slice().sort((a,b)=>sStart(a).localeCompare(sStart(b))||a.villa.localeCompare(b.villa));
   const list=tab==='now'?all.filter(s=>now<sEnd(s)):all.filter(s=>now>=sEnd(s)).reverse();
   $('tabNow').setAttribute('aria-pressed',tab==='now');$('tabPast').setAttribute('aria-pressed',tab==='past');
-  if(!list.length){$('stays').innerHTML=`<p class="empty">${tab==='now'?'No current or upcoming stays. Select villas above and save a stay to start.':'No past stays yet.'}</p>`;return;}
+  if(!list.length){$('stays').innerHTML=`<p class="empty">${tab==='now'?'Nothing current or upcoming. Select villas above and save a stay or an out-of-order period to start.':'No past stays yet.'}</p>`;return;}
   $('stays').innerHTML=list.map(s=>{
-    const [cls,txt]=stayStatus(s),nights=dayDiff(s.in,s.out);
+    const [cls,txt]=stayStatus(s),nights=dayDiff(s.in,s.out),b=isBlk(s),k=kindOf(s);
+    const who=b?`<span class="badge ${k}">${KIND[k].name}</span>${s.reason?esc(s.reason):'<span class="muted">No reason given</span>'}`:(s.guest?esc(s.guest):'<span class="muted">No guest name</span>');
     return `<div class="stay"><div class="v">${esc(s.villa)}</div>
-      <div><div class="who">${s.guest?esc(s.guest):'<span class="muted">No guest name</span>'}</div><div class="when2 num">${fmtD(s.in)} to ${fmtD(s.out)}, ${nights} ${nights===1?'night':'nights'}</div></div>
+      <div><div class="who">${who}</div><div class="when2 num">${fmtD(s.in)} to ${fmtD(s.out)}${b&&nights===0?', until '+esc(s.outTime||CFG.defOutTime):', '+nights+' '+(nights===1?'night':'nights')}</div></div>
       <div class="st ${cls}">${esc(txt)}</div>
       ${s.note?`<div class="nt">${esc(s.note)}</div>`:''}
-      <div class="tools"><button class="btn sm" type="button" data-edit="${s.id}">Edit</button>${cls==='in'?`<button class="btn sm" type="button" data-end="${s.id}">Check out now</button>`:''}<button class="btn sm danger" type="button" data-del="${s.id}">Delete</button></div></div>`;}).join('');
+      <div class="tools"><button class="btn sm" type="button" data-edit="${s.id}">Edit</button>${cls==='in'||cls==='blk'?`<button class="btn sm" type="button" data-end="${s.id}">${b?'Back in service now':'Check out now'}</button>`:''}<button class="btn sm danger" type="button" data-del="${s.id}">Delete</button></div></div>`;}).join('');
   $('stays').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>startEdit(b.dataset.edit));
   $('stays').querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>endNow(b.dataset.end));
   $('stays').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delStay(b.dataset.del));}
@@ -460,18 +478,27 @@ $('syncBtn').onclick=()=>pushNow();
 
 /* ---------- stays: add / edit / delete ---------- */
 const uid=()=>(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2));
+function kindUI(){
+  const k=$('fKind').value,b=k!=='stay';
+  $('lIn').textContent=b?'From':'Check-in';$('lOut').textContent=b?'Until':'Check-out';
+  $('lOutTime').textContent=b?'Back in service at':'Check-out time';
+  $('lGuest').textContent=b?'Reason (optional)':'Guest name (optional)';
+  $('fGuest').placeholder=b?(k==='ooo'?'e.g. Air-con repair':'e.g. Deep cleaning'):'';
+  $('kindHint').textContent=b?`A villa shows as ${KIND[k].word} (${k==='ooo'?'orange':'purple'} on the map) from the first date until the time on the last date, then green again.`:'A villa is red from the check-in date until the check-out time, then green again.';
+  if(!editingId){$('formTitle').textContent=b?'Add '+KIND[k].name:'Add a stay';$('fSave').textContent=b?'Save '+KIND[k].name:'Save stay';}}
+$('fKind').onchange=kindUI;
 function resetForm(){
-  editingId=null;const t=today();
+  editingId=null;const t=today();$('fKind').value='stay';
   $('fVillas').value=[...selected].sort().join(', ');
   $('fIn').value=t;const d=new Date(t+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);$('fOut').value=d.toISOString().slice(0,10);
   $('fOutTime').value=CFG.defOutTime;$('fGuest').value='';$('fNote').value='';
-  $('formTitle').textContent='Add a stay';$('fSave').textContent='Save stay';$('fCancel').hidden=true;$('fErr').hidden=true;}
+  kindUI();$('fCancel').hidden=true;$('fErr').hidden=true;}
 function startEdit(id){
   const s=DATA.stays.find(x=>x.id===id);if(!s)return;
   editingId=id;selected=new Set();
   $('fVillas').value=s.villa;$('fIn').value=s.in;$('fOut').value=s.out;$('fOutTime').value=s.outTime||CFG.defOutTime;
-  $('fGuest').value=s.guest||'';$('fNote').value=s.note||'';
-  $('formTitle').textContent='Edit stay for villa '+s.villa;$('fSave').textContent='Update stay';$('fCancel').hidden=false;$('fErr').hidden=true;
+  $('fKind').value=kindOf(s);$('fGuest').value=(isBlk(s)?s.reason:s.guest)||'';$('fNote').value=s.note||'';
+  kindUI();$('formTitle').textContent=(isBlk(s)?'Edit '+KIND[kindOf(s)].name:'Edit stay')+' for villa '+s.villa;$('fSave').textContent=isBlk(s)?'Update':'Update stay';$('fCancel').hidden=false;$('fErr').hidden=true;
   render();$('formBlk').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}
 function cancelEdit(){resetForm();render();}
 $('fCancel').onclick=cancelEdit;
@@ -485,14 +512,16 @@ $('stayForm').addEventListener('submit',async ev=>{
   if(bad.length)return formErr((bad.length>1?'These are not villa numbers: ':'This is not a villa number: ')+bad.join(', ')+'. Villas run 1001–1019 and 2011–2174.');
   if(editingId&&vs.length>1)return formErr('Edit one villa at a time.');
   if(!inD||!outD)return formErr('Choose both a check-in and a check-out date.');
-  if(outD<=inD)return formErr('Check-out must be after check-in.');
+  const kind=$('fKind').value,blkK=kind!=='stay';
+  if(blkK?(outD<inD||(outD===inD&&outT<='00:00')):outD<=inD)return formErr(blkK?'The end date and time must be after the start date.':'Check-out must be after check-in.');
   const cand={in:inD,out:outD,outTime:outT};
   for(const v of vs){
     const clash=DATA.stays.find(s=>s.villa===v&&s.id!==editingId&&sStart(s)<sEnd(cand)&&sStart(cand)<sEnd(s));
-    if(clash)return formErr(`Villa ${v} already has a stay from ${fmtD(clash.in)} to ${fmtD(clash.out)}. Change the dates or edit that stay.`);}
-  const guest=$('fGuest').value.trim(),note=$('fNote').value.trim();
-  if(editingId){const s=DATA.stays.find(x=>x.id===editingId);Object.assign(s,{villa:vs[0],in:inD,out:outD,outTime:outT,guest,note});}
-  else vs.forEach(v=>DATA.stays.push({id:uid(),villa:v,in:inD,out:outD,outTime:outT,guest,note}));
+    if(clash)return formErr(`Villa ${v} already has ${isBlk(clash)?KIND[kindOf(clash)].name.toLowerCase():'a stay'} from ${fmtD(clash.in)} to ${fmtD(clash.out)}. Change the dates or edit that entry.`);}
+  const txt=$('fGuest').value.trim(),note=$('fNote').value.trim();
+  const body=blkK?{kind,reason:txt,guest:''}:{guest:txt};
+  if(editingId){const s=DATA.stays.find(x=>x.id===editingId);delete s.kind;delete s.reason;Object.assign(s,{villa:vs[0],in:inD,out:outD,outTime:outT,note},body);}
+  else vs.forEach(v=>DATA.stays.push(Object.assign({id:uid(),villa:v,in:inD,out:outD,outTime:outT,note},body)));
   const first=vs[0];selected=new Set();detailVilla=first;resetForm();render();
   await persist();renderSync();});
 async function endNow(id){
@@ -501,7 +530,7 @@ async function endNow(id){
   render();await persist();renderSync();}
 async function delStay(id){
   const s=DATA.stays.find(x=>x.id===id);if(!s)return;
-  if(!confirm(`Delete the stay for villa ${s.villa}${s.guest?' ('+s.guest+')':''}, ${fmtD(s.in)} to ${fmtD(s.out)}?`))return;
+  if(!confirm(`Delete ${isBlk(s)?KIND[kindOf(s)].name:'the stay'} for villa ${s.villa}${(s.guest||s.reason)?' ('+(s.guest||s.reason)+')':''}, ${fmtD(s.in)} to ${fmtD(s.out)}?`))return;
   DATA.stays=DATA.stays.filter(x=>x.id!==id);if(editingId===id)resetForm();render();await persist();renderSync();}
 $('tabNow').onclick=()=>{tab='now';renderStays();};
 $('tabPast').onclick=()=>{tab='past';renderStays();};
