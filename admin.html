@@ -170,6 +170,7 @@ code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radiu
     <div class="when">
       <label for="viewDate">Show availability on</label>
       <div class="row"><input type="date" id="viewDate"><button class="btn sm" id="todayBtn" type="button">Today</button></div>
+      <p class="hint">Future dates also change the dots on the map on this device.</p>
     </div>
   </div>
 
@@ -254,7 +255,7 @@ const CFG={iter:250000,path:'occupancy.enc.json',defOutTime:'12:00'};
 const host=location.hostname,onPages=host.endsWith('.github.io');
 const OWNER=onPages?host.split('.')[0]:'jwee903-cmd';
 const REPO=onPages?(location.pathname.split('/')[1]||'sibsan-map'):'sibsan-map';
-const K={key:'sibsan-adm-key',blob:'sibsan-adm-blob',dirty:'sibsan-adm-dirty',token:'sibsan-adm-token',sha:'sibsan-adm-sha'};
+const K={key:'sibsan-adm-key',blob:'sibsan-adm-blob',dirty:'sibsan-adm-dirty',token:'sibsan-adm-token',sha:'sibsan-adm-sha',view:'sibsan-adm-view'};
 const $=id=>document.getElementById(id);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -292,6 +293,8 @@ const fmtD=d=>{const [y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd)
 let KEY=null,SALT=null,META=null,DATA=null,SHA=store.get(K.sha)||null;
 let viewDate=null,editingId=null,tab='now',selected=new Set(),detailVilla=null,sync={s:'local',t:''},forceCreate=false;
 const today=()=>nowBKK().date;
+const storedView=()=>{const v=store.get(K.view);return v&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&v>today()?v:null;};
+function setView(v){viewDate=v||today();$('viewDate').value=viewDate;if(viewDate>today())store.set(K.view,viewDate);else store.del(K.view);}
 const atNow=()=>{const n=nowBKK();return viewDate===n.date?n.date+'T'+n.time:viewDate+'T12:00';};
 const token=()=>store.get(K.token)||'';
 
@@ -399,7 +402,7 @@ $('lockNow').onclick=()=>{store.del(K.key);KEY=null;DATA=null;lockScreen('unlock
 /* ---------- main view ---------- */
 function enter(){
   show('app');
-  viewDate=today();$('viewDate').value=viewDate;
+  setView(storedView());
   $('repoName').textContent=REPO;$('mapLink').href='./';
   $('tokDel').hidden=!token();
   resetForm();render();
@@ -534,8 +537,9 @@ async function delStay(id){
   DATA.stays=DATA.stays.filter(x=>x.id!==id);if(editingId===id)resetForm();render();await persist();renderSync();}
 $('tabNow').onclick=()=>{tab='now';renderStays();};
 $('tabPast').onclick=()=>{tab='past';renderStays();};
-$('viewDate').onchange=()=>{viewDate=$('viewDate').value||today();render();};
-$('todayBtn').onclick=()=>{viewDate=today();$('viewDate').value=viewDate;render();};
+$('viewDate').onchange=()=>{setView($('viewDate').value);render();};
+$('todayBtn').onclick=()=>{setView(null);render();};
+window.addEventListener('storage',e=>{if(e.key===K.view&&!$('app').hidden){viewDate=storedView()||today();$('viewDate').value=viewDate;render();}});
 
 /* ---------- sharing & passcode ---------- */
 $('tokSave').onclick=async()=>{

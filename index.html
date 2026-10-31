@@ -114,6 +114,12 @@ body.walking .mepill{display:none}
 [dir="rtl"] .tips{padding-left:0;padding-right:18px}
 .legend{position:absolute;left:calc(12px + env(safe-area-inset-left,0px));bottom:12px;background:rgba(255,253,247,.94);color:#1f2a27;border:1px solid #cfc9b8;border-radius:8px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:6px;max-width:calc(100% - 24px)}
 .legend .keys{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.occctl{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;border-top:1px solid #e2ddcd;padding-top:6px}
+.occctl label{font-weight:700;display:flex;align-items:center;gap:6px}
+.occctl input{font:12px/1 inherit;font-family:inherit;border:1px solid #cfc9b8;border-radius:6px;padding:4px 6px;background:#fff;color:#1f2a27;min-height:28px}
+.occctl button{font:700 11px/1 inherit;font-family:inherit;border:1px solid #0f6b6f;background:#fff;color:#0f6b6f;border-radius:99px;padding:5px 10px;cursor:pointer}
+.occctl .cnt{flex:1 1 100%;color:#4a554f}
+.occctl.fc{border-top-color:#e08a00}.occctl.fc .cnt{color:#9a5800;font-weight:700}
 .admpill{font-size:11px;font-weight:700;color:#0f6b6f;text-decoration:none;border:1px solid #0f6b6f;border-radius:99px;padding:1px 8px}
 small.occline{font-weight:600}
 .peeking .legend{display:none}
@@ -390,6 +396,11 @@ body.walking .legend,body.walking .hint,body.walking .peek{display:none}
         <span id="legOos" hidden><span class="dot" style="background:#7b4fb3"></span> Out of service</span>
         <a class="admpill" id="legAdm" href="admin.html" hidden>Admin view</a>
         <span><span class="dot" style="background:#9a5b2c;border-radius:2px"></span> <span data-i18n="legVenue">Venue</span></span>
+      </div>
+      <div class="occctl" id="occCtl" hidden>
+        <label for="occDate">Date <input type="date" id="occDate"></label>
+        <button type="button" id="occToday" hidden>Today</button>
+        <span class="cnt" id="occCnt"></span>
       </div>
     </div>
     <div class="hint" id="hint" hidden>Tap two points on the map</div>
@@ -1379,29 +1390,45 @@ const occIs=(s,at)=>s.in+"T00:00"<=at&&at<occEnd(s);
 const occDay=d=>{const[y,m,dd]=d.split("-").map(Number);return new Date(y,m-1,dd).toLocaleDateString("en-GB",{day:"numeric",month:"short"});};
 const occKind=s=>s.kind==="ooo"||s.kind==="oos"?s.kind:"stay";
 const OCCK={stay:{c:"#c62839",t:"#c62839",name:"Occupied"},ooo:{c:"#e08a00",t:"#9a5800",name:"Out of order"},oos:{c:"#7b4fb3",t:"#6d3fa8",name:"Out of service"}};
+const OCCV="sibsan-adm-view";
+const occToday=()=>occBKK().slice(0,10);
+function occView(){const v=occLS(OCCV);return v&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&v>occToday()?v:"";}
+const occAt=()=>{const v=occView();return v?v+"T12:00":occBKK();};
+function occSetView(v){try{if(v&&v>occToday())localStorage.setItem(OCCV,v);else localStorage.removeItem(OCCV);}catch(e){}applyOcc();}
 function occStatus(v){
-  const at=occBKK(),list=OCC.stays.filter(s=>s.villa===v).sort((a,b)=>a.in.localeCompare(b.in));
+  const at=occAt(),list=OCC.stays.filter(s=>s.villa===v).sort((a,b)=>a.in.localeCompare(b.in));
   return {cur:list.find(s=>occIs(s,at)),next:list.find(s=>s.in+"T00:00">at)};}
 function occLine(v,tag){
   if(!OCC.on||!OCC.loaded)return "";
-  const {cur,next}=occStatus(v);let t;
+  const {cur,next}=occStatus(v);let t;const fv=occView(),pre=fv?occDay(fv)+": ":"";
   if(cur){const k=occKind(cur);
     t=k==="stay"?"Occupied"+(cur.guest?" by "+cur.guest:"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00"):OCCK[k].name+(cur.reason?" ("+cur.reason+")":"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00");}
   else t="Available"+(next?(occKind(next)==="stay"?" · next arrival ":" · "+OCCK[occKind(next)].name.toLowerCase()+" from ")+occDay(next.in):"");
-  return `<${tag} class="occline" style="color:${cur?OCCK[occKind(cur)].t:"#1f8a4c"}">${esc(t)}</${tag}>`;}
+  return `<${tag} class="occline" data-v="${esc(v)}" style="color:${cur?OCCK[occKind(cur)].t:"#1f8a4c"}">${esc(pre+t)}</${tag}>`;}
 function applyOcc(){
   if(!OCC.on)return;
-  const seen={};
+  const seen={},cnt={stay:0,ooo:0,oos:0};
   for(const v of villas){
     const g=mk.querySelector(`[data-k="v:${v}"]`);if(!g)continue;
     const dot=g.querySelectorAll("circle")[1];if(!dot)continue;
     if(!OCC.loaded){dot.setAttribute("fill","#0f6b6f");dot.setAttribute("r","4.2");continue;}
     const {cur}=occStatus(v);
-    const ck=cur?occKind(cur):"";if(ck)seen[ck]=1;
+    const ck=cur?occKind(cur):"";if(ck){seen[ck]=1;cnt[ck]++;}
     dot.setAttribute("fill",cur?OCCK[ck].c:"#1f8a4c");dot.setAttribute("r",cur?"5.6":"4.2");
     const t=g.querySelector("title");if(t)t.textContent=T("villa",{n:v})+" · "+(cur?OCCK[ck].name:"Available");}
   $("legVillaKey").hidden=OCC.loaded;$("legFree").hidden=!OCC.loaded;$("legOcc").hidden=!OCC.loaded;$("legOoo").hidden=!(OCC.loaded&&seen.ooo);$("legOos").hidden=!(OCC.loaded&&seen.oos);$("legAdm").hidden=false;
-  $("legAdm").textContent=OCC.loaded?"Admin view":"Admin view · no data";}
+  const fv=occView();
+  $("legAdm").textContent=OCC.loaded?(fv?"Admin view · forecast":"Admin view"):"Admin view · no data";
+  const ctl=$("occCtl");ctl.hidden=!OCC.loaded;
+  if(OCC.loaded){
+    const inp=$("occDate");inp.min=occToday();if(inp.value!==(fv||occToday()))inp.value=fv||occToday();
+    $("occToday").hidden=!fv;ctl.classList.toggle("fc",!!fv);
+    const nb=cnt.ooo+cnt.oos,tot=villas.length;
+    $("occCnt").textContent=(fv?"Forecast for "+occDay(fv)+" (noon): ":"Now: ")+cnt.stay+" occupied"+(nb?" · "+nb+" unavailable":"")+" · "+(tot-cnt.stay-nb)+" available";}
+  document.querySelectorAll(".occline[data-v]").forEach(el=>{el.outerHTML=occLine(el.dataset.v,el.tagName.toLowerCase());});}
+$("occDate").onchange=e=>occSetView(e.target.value);
+$("occToday").onclick=()=>occSetView("");
+window.addEventListener("storage",e=>{if(!OCC.on)return;if(e.key===OCCV)applyOcc();else if(e.key==="sibsan-adm-blob"||e.key==="sibsan-adm-dirty")occLoad();});
 async function occLoad(){
   const raw=occLS("sibsan-adm-key");if(!raw||!window.crypto||!crypto.subtle)return;
   OCC.on=true;
