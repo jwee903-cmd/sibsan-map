@@ -1386,7 +1386,8 @@ function occBKK(){
     .formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value,o),{});
   return p.year+"-"+p.month+"-"+p.day+"T"+p.hour+":"+p.minute;}
 const occEnd=s=>s.out+"T"+(s.outTime||"12:00");
-const occIs=(s,at)=>s.in+"T00:00"<=at&&at<occEnd(s);
+const occStart=s=>{let st=s.in+"T00:00";for(const p of OCC.stays)if(p.villa===s.villa&&p!==s&&p.out===s.in){const e=occEnd(p);if(e>st)st=e;}return st;};
+const occIs=(s,at)=>occStart(s)<=at&&at<occEnd(s);
 const occDay=d=>{const[y,m,dd]=d.split("-").map(Number);return new Date(y,m-1,dd).toLocaleDateString("en-GB",{day:"numeric",month:"short"});};
 const occKind=s=>s.kind==="ooo"||s.kind==="oos"?s.kind:"stay";
 const OCCK={stay:{c:"#c62839",t:"#c62839",name:"Occupied"},ooo:{c:"#e08a00",t:"#9a5800",name:"Out of order"},oos:{c:"#7b4fb3",t:"#6d3fa8",name:"Out of service"}};
@@ -1397,13 +1398,14 @@ const occAt=()=>{const v=occView();return v?v+"T12:00":occBKK();};
 function occSetView(v){try{if(v&&v>occToday())localStorage.setItem(OCCV,v);else localStorage.removeItem(OCCV);}catch(e){}applyOcc();}
 function occStatus(v){
   const at=occAt(),list=OCC.stays.filter(s=>s.villa===v).sort((a,b)=>a.in.localeCompare(b.in));
-  return {cur:list.find(s=>occIs(s,at)),next:list.find(s=>s.in+"T00:00">at)};}
+  return {cur:list.find(s=>occIs(s,at)),next:list.find(s=>occStart(s)>at)};}
 function occLine(v,tag){
   if(!OCC.on||!OCC.loaded)return "";
   const {cur,next}=occStatus(v);let t;const fv=occView(),pre=fv?occDay(fv)+": ":"";
   if(cur){const k=occKind(cur);
     t=k==="stay"?"Occupied"+(cur.guest?" by "+cur.guest:"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00"):OCCK[k].name+(cur.reason?" ("+cur.reason+")":"")+" until "+occDay(cur.out)+", "+(cur.outTime||"12:00");}
-  else t="Available"+(next?(occKind(next)==="stay"?" · next arrival ":" · "+OCCK[occKind(next)].name.toLowerCase()+" from ")+occDay(next.in):"");
+  if(cur&&next&&next.in===cur.out)t+=" · next guest arrives same day";
+  else if(!cur)t="Available"+(next?(occKind(next)==="stay"?" · next arrival ":" · "+OCCK[occKind(next)].name.toLowerCase()+" from ")+occDay(next.in):"");
   return `<${tag} class="occline" data-v="${esc(v)}" style="color:${cur?OCCK[occKind(cur)].t:"#1f8a4c"}">${esc(pre+t)}</${tag}>`;}
 function applyOcc(){
   if(!OCC.on)return;

@@ -198,7 +198,7 @@ code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radiu
           <button class="btn" id="fCancel" type="button" hidden>Cancel edit</button>
         </div>
         <p class="err" id="fErr" role="alert" hidden></p>
-        <p class="hint" id="kindHint">A villa is red from the check-in date until the check-out time, then green again.</p>
+        <p class="hint" id="kindHint">A villa is red from the check-in date until the check-out time, then green again. A new stay can start on the day the previous one checks out.</p>
       </div>
     </form>
   </section>
@@ -281,7 +281,9 @@ function nowBKK(){
   const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
     .formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value,o),{});
   return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`};}
-const sStart=s=>s.in+'T00:00',sEnd=s=>s.out+'T'+(s.outTime||CFG.defOutTime);
+const rawStart=s=>s.in+'T00:00',sEnd=s=>s.out+'T'+(s.outTime||CFG.defOutTime);
+/* same-day turnover: a stay that begins on the day another one on the same villa ends only starts once that one has left */
+function sStart(s){let st=rawStart(s);if(DATA)for(const p of DATA.stays)if(p.villa===s.villa&&p.id!==s.id&&p.out===s.in){const e=sEnd(p);if(e>st)st=e;}return st;}
 const isOcc=(s,at)=>sStart(s)<=at&&at<sEnd(s);
 const kindOf=s=>s.kind==='ooo'||s.kind==='oos'?s.kind:'stay';
 const KIND={stay:{name:'Guest stay',cls:'occ',word:'occupied'},ooo:{name:'Out of Order',cls:'ooo',word:'out of order'},oos:{name:'Out of Service',cls:'oos',word:'out of service'}};
@@ -437,7 +439,7 @@ function renderDetail(){
   if(!v){box.innerHTML='';return;}
   const at=atNow(),{cur,next}=statusOf(v,at);
   let h=`<b>Villa ${v}</b> is `;
-  if(cur){const b=isBlk(cur),k=kindOf(cur);h+=b?`<b style="color:var(--${k})">${KIND[k].word}</b>${cur.reason?' ('+esc(cur.reason)+')':''}, ${fmtD(cur.in)} to ${fmtD(cur.out)}, back at ${esc(cur.outTime||CFG.defOutTime)}. `:`<b style="color:var(--occ)">occupied</b>${cur.guest?' by '+esc(cur.guest):''}, ${fmtD(cur.in)} to ${fmtD(cur.out)} at ${esc(cur.outTime||CFG.defOutTime)}. `;h+=`<button class="btn sm" type="button" data-edit="${cur.id}">Edit</button>`;}
+  if(cur){const b=isBlk(cur),k=kindOf(cur);h+=b?`<b style="color:var(--${k})">${KIND[k].word}</b>${cur.reason?' ('+esc(cur.reason)+')':''}, ${fmtD(cur.in)} to ${fmtD(cur.out)}, back at ${esc(cur.outTime||CFG.defOutTime)}. `:`<b style="color:var(--occ)">occupied</b>${cur.guest?' by '+esc(cur.guest):''}, ${fmtD(cur.in)} to ${fmtD(cur.out)} at ${esc(cur.outTime||CFG.defOutTime)}. `;if(next&&next.in===cur.out)h+=`Next guest arrives the same day${next.guest?' ('+esc(next.guest)+')':''}. `;h+=`<button class="btn sm" type="button" data-edit="${cur.id}">Edit</button>`;}
   else{h+=`<b style="color:var(--free)">available</b>`;if(next){const b=isBlk(next);h+=b?`. ${KIND[kindOf(next)].name} from ${fmtD(next.in)}${next.reason?' ('+esc(next.reason)+')':''}. `:`. Next arrival ${fmtD(next.in)}${next.guest?' ('+esc(next.guest)+')':''}. `;h+=`<button class="btn sm" type="button" data-edit="${next.id}">Edit</button>`;}else h+='.';}
   box.innerHTML=h;
   const eb=box.querySelector('[data-edit]');if(eb)eb.onclick=()=>startEdit(eb.dataset.edit);}
@@ -445,10 +447,10 @@ function stayStatus(s){
   const n=nowBKK(),now=n.date+'T'+n.time;
   if(now>=sEnd(s))return ['past','Ended'];
   if(isBlk(s)){
-    if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon','Starts '+(d===1?'tomorrow':'in '+d+' days')];}
+    if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon','Starts '+(d<=0?'today':d===1?'tomorrow':'in '+d+' days')];}
     if(s.out===n.date)return ['blk','Back in service today at '+(s.outTime||CFG.defOutTime)];
     const d=dayDiff(n.date,s.out);return ['blk','Back in service in '+d+(d===1?' day':' days')];}
-  if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon',d===1?'Arrives tomorrow':'Arrives in '+d+' days'];}
+  if(now<sStart(s)){const d=dayDiff(n.date,s.in);return ['soon',d<=0?'Arrives today after '+(DATA.stays.find(p=>p.villa===s.villa&&p.id!==s.id&&p.out===s.in)||{}).outTime:d===1?'Arrives tomorrow':'Arrives in '+d+' days'];}
   if(s.out===n.date)return ['in','Leaves today at '+(s.outTime||CFG.defOutTime)];
   const d=dayDiff(n.date,s.out);return ['in','In house, leaves in '+d+(d===1?' day':' days')];}
 function renderStays(){
@@ -487,7 +489,7 @@ function kindUI(){
   $('lOutTime').textContent=b?'Back in service at':'Check-out time';
   $('lGuest').textContent=b?'Reason (optional)':'Guest name (optional)';
   $('fGuest').placeholder=b?(k==='ooo'?'e.g. Air-con repair':'e.g. Deep cleaning'):'';
-  $('kindHint').textContent=b?`A villa shows as ${KIND[k].word} (${k==='ooo'?'orange':'purple'} on the map) from the first date until the time on the last date, then green again.`:'A villa is red from the check-in date until the check-out time, then green again.';
+  $('kindHint').textContent=b?`A villa shows as ${KIND[k].word} (${k==='ooo'?'orange':'purple'} on the map) from the first date until the time on the last date, then green again.`:'A villa is red from the check-in date until the check-out time, then green again. A new stay can start on the day the previous one checks out.';
   if(!editingId){$('formTitle').textContent=b?'Add '+KIND[k].name:'Add a stay';$('fSave').textContent=b?'Save '+KIND[k].name:'Save stay';}}
 $('fKind').onchange=kindUI;
 function resetForm(){
@@ -519,7 +521,7 @@ $('stayForm').addEventListener('submit',async ev=>{
   if(blkK?(outD<inD||(outD===inD&&outT<='00:00')):outD<=inD)return formErr(blkK?'The end date and time must be after the start date.':'Check-out must be after check-in.');
   const cand={in:inD,out:outD,outTime:outT};
   for(const v of vs){
-    const clash=DATA.stays.find(s=>s.villa===v&&s.id!==editingId&&sStart(s)<sEnd(cand)&&sStart(cand)<sEnd(s));
+    const clash=DATA.stays.find(s=>s.villa===v&&s.id!==editingId&&s.in!==cand.out&&s.out!==cand.in&&rawStart(s)<sEnd(cand)&&rawStart(cand)<sEnd(s));
     if(clash)return formErr(`Villa ${v} already has ${isBlk(clash)?KIND[kindOf(clash)].name.toLowerCase():'a stay'} from ${fmtD(clash.in)} to ${fmtD(clash.out)}. Change the dates or edit that entry.`);}
   const txt=$('fGuest').value.trim(),note=$('fNote').value.trim();
   const body=blkK?{kind,reason:txt,guest:''}:{guest:txt};
