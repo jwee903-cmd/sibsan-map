@@ -147,6 +147,12 @@ pre.rules{margin:8px 0 0;padding:12px;background:var(--shade);border-radius:9px;
   <div id="body" hidden>
     <div class="sync" id="sync" role="status"><i></i><span id="syncTxt">Loading…</span></div>
 
+    <div class="card" id="gc" hidden style="margin-top:14px">
+      <div class="chead" style="margin-bottom:0"><div><h3 id="gcT">Guest counting</h3><p id="gcP"></p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="gcSave" type="button" hidden>Save to GitHub</button><button class="btn sm" id="gcCopy" type="button" hidden>Copy settings</button></div></div>
+      <p id="gcMsg" role="status" style="margin-top:6px"></p>
+    </div>
+
     <section class="blk card" id="setup" hidden>
       <h2>Connect the visit counter</h2>
       <p class="muted" style="margin-top:6px">The map needs somewhere to add up the visits. This uses a free Google Firebase database that stores only anonymous counts per day: no names, no phone numbers, no device information.</p>
@@ -421,7 +427,7 @@ async function refresh(){
     $('setup').hidden=true;$('dash').hidden=false;
     const n=Object.keys(DAYS).length;
     setSync('ok',n?'Connected · '+n+' day'+(n===1?'':'s')+' of data · updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Connected · waiting for the first visit');
-    setRanges();render();
+    setRanges();render();checkCounting();
   }catch(e){
     const p=await probe(CFG);
     setSync('bad',p.ok?'Could not load the visit data. Try Refresh.':p.msg);
@@ -456,6 +462,27 @@ function fromBlock(){
   const k=t.match(/apiKey\s*:\s*["']([^"']+)["']/),p=t.match(/projectId\s*:\s*["']([^"']+)["']/);
   if(k){$('cfgKey').value=k[1];if(p)$('cfgProj').value=p[1];}}
 $('cfgProj').addEventListener('input',fromBlock);$('cfgKey').addEventListener('input',fromBlock);
+function cfgFileText(c){return '/* Guest-usage counter settings. The project id and web API key only identify the database; the database rules let guests do nothing except add one visit. */\nwindow.SIBSAN_STATS={projectId:'+JSON.stringify(c.projectId)+',apiKey:'+JSON.stringify(c.apiKey)+'};\n';}
+async function pushConfig(file){
+  const tok=store.get('sibsan-adm-token');
+  if(!tok)return {pushed:false,why:'No GitHub token is saved on this device.'};
+  try{
+    const h={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},url='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/stats-config.js';
+    const g=await fetch(url,{headers:h});let sha;if(g.ok)sha=(await g.json()).sha;
+    const r=await fetch(url,{method:'PUT',headers:h,body:JSON.stringify({message:'Connect guest visit counter',content:btoa(file),sha})});
+    if(r.ok)return {pushed:true,why:''};
+    return {pushed:false,why:r.status===403||r.status===404?'The GitHub token cannot write to this repository.':'GitHub answered '+r.status+'.'};
+  }catch(e){return {pushed:false,why:'No connection to GitHub.'};}}
+async function checkCounting(){
+  const box=$('gc');if(!CFG){box.hidden=true;return;}
+  box.hidden=false;let on=false;
+  try{const r=await fetch('stats-config.js?t='+Date.now(),{cache:'no-store'});const t=await r.text();on=t.includes('"'+CFG.projectId+'"')&&t.includes(CFG.apiKey);}catch(e){}
+  $('gcT').textContent=on?'Guest counting is on':'Guest counting is not on yet';
+  $('gcP').textContent=on?'The map is sending anonymous visits to this dashboard.':'This dashboard can read the database, but the map does not know about it yet, so no guest visits are being counted.';
+  $('gcSave').hidden=on;$('gcCopy').hidden=on;$('gcMsg').textContent='';}
+$('gcSave').onclick=async()=>{const m=$('gcMsg');m.className='';m.textContent='Saving…';const {pushed,why}=await pushConfig(cfgFileText(CFG));
+  if(pushed){m.className='ok';m.textContent='Saved. The map picks it up in about 2 minutes. Reload this page then.';}else{m.className='err';m.textContent=why+' Use “Copy settings” instead and send the text to Claude.';}};
+$('gcCopy').onclick=async()=>{const m=$('gcMsg');try{await navigator.clipboard.writeText(cfgFileText(CFG));m.className='ok';m.textContent='Copied. Paste it into the chat with Claude.';}catch(e){m.className='err';m.textContent='Could not copy automatically. Press and hold the text in the box that appeared, then copy.';$('cfgFile').textContent=cfgFileText(CFG);$('cfgFile').hidden=false;$('gc').append($('cfgFile'));}};
 $('cfgSave').onclick=async()=>{
   const c={projectId:$('cfgProj').value.trim(),apiKey:$('cfgKey').value.trim()},m=$('cfgMsg');m.className='';$('cfgFile').hidden=true;
   if(!c.projectId||!c.apiKey){m.className='err';m.textContent='Enter both the Project ID and the Web API key.';return;}
@@ -464,16 +491,8 @@ $('cfgSave').onclick=async()=>{
   const p=await probe(c);
   if(!p.ok){m.className='err';m.textContent=p.msg;return;}
   store.set('sibsan-stats-cfg',JSON.stringify(c));
-  const file='/* Guest-usage counter settings. The project id and web API key only identify the database; the database rules let guests do nothing except add one visit. */\nwindow.SIBSAN_STATS={projectId:'+JSON.stringify(c.projectId)+',apiKey:'+JSON.stringify(c.apiKey)+'};\n';
-  const tok=store.get('sibsan-adm-token');let pushed=false,why='';
-  if(tok){
-    try{
-      const h={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},url='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/stats-config.js';
-      const g=await fetch(url,{headers:h});let sha;if(g.ok)sha=(await g.json()).sha;
-      const r=await fetch(url,{method:'PUT',headers:h,body:JSON.stringify({message:'Connect guest visit counter',content:btoa(file),sha})});
-      if(r.ok)pushed=true;else why=r.status===403||r.status===404?'The GitHub token cannot write to this repository.':'GitHub answered '+r.status+'.';
-    }catch(e){why='No connection to GitHub.';}}
-  else why='No GitHub token is saved on this device.';
+  const file=cfgFileText(c);
+  const {pushed,why}=await pushConfig(file);
   if(pushed){m.className='ok';m.textContent='Connected. Guest visits are counted from now on (the map picks this up within a couple of minutes).';}
   else{m.className='warn';m.style.color='var(--warn)';m.textContent='Connected for this dashboard. '+why+' To start counting guest visits, this file must be saved as stats-config.js in the repository:';$('cfgFile').textContent=file;$('cfgFile').hidden=false;}
   refresh();};
