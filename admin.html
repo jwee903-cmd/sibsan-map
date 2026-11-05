@@ -156,6 +156,7 @@ code{font:13px var(--f-num);background:var(--shade);padding:1px 5px;border-radiu
     </div>
     <div class="acts">
       <a class="btn" id="mapLink" href="./">Open map</a>
+      <a class="btn" href="stats.html">Guest usage</a>
       <button class="btn" id="lockNow" type="button">Lock</button>
     </div>
   </div>
@@ -403,7 +404,7 @@ $('lockNow').onclick=()=>{store.del(K.key);KEY=null;DATA=null;lockScreen('unlock
 
 /* ---------- main view ---------- */
 function enter(){
-  show('app');
+  show('app');store.set('sibsan-staff','1');
   setView(storedView());
   $('repoName').textContent=REPO;$('mapLink').href='./';
   $('tokDel').hidden=!token();

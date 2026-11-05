@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Guest map usage · Sib San</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#f3f1ea; --panel:#fffdf7; --ink:#1f2a27; --muted:#66706b; --line:#dcd7c8; --grid:#e6e2d4; --shade:rgba(31,42,39,.06);
+  --river:#0f6b6f; --on-river:#fff; --err:#c62839; --ok:#1f8a4c; --warn:#9a5800;
+  --s1:#2a78d6; --s2:#eb6834; --seq-fill:#2a78d6; --seq-track:#cde2fb;
+  --f-display:"Marcellus","Cormorant Garamond",Georgia,serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a19; --panel:#1c2422; --ink:#e9ece6; --muted:#9aa59f; --line:#2f3a37; --grid:#283230; --shade:rgba(255,255,255,.05);
+  --river:#5fb8b1; --on-river:#0d1413; --err:#ef6a78; --ok:#58c585; --warn:#f0b04d;
+  --s1:#3987e5; --s2:#d95926; --seq-fill:#3987e5; --seq-track:#184f95; color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding:0 0 env(safe-area-inset-bottom,0)}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;line-height:1.15}
+h1{font-size:30px} h2{font-size:19px} h3{font-size:16px}
+p{margin:0}
+a{color:var(--river)}
+.wrap{max-width:980px;margin:0 auto;padding:18px 16px 56px}
+.muted{color:var(--muted)}
+:focus-visible{outline:3px solid var(--river);outline-offset:2px;border-radius:6px}
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;min-height:44px;padding:0 15px;font:600 14px var(--f-body);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;gap:6px}
+.btn:hover{border-color:var(--river)}
+.btn.primary{background:var(--river);border-color:var(--river);color:var(--on-river)}
+.btn.sm{min-height:36px;padding:0 11px;font-size:13px}
+.btn[disabled]{opacity:.55;cursor:default}
+input,select,textarea{width:100%;min-height:44px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:9px;padding:9px 12px;font:16px var(--f-body)}
+label.f>span{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+.hint{font-size:13px;color:var(--muted);margin-top:5px}
+.err{color:var(--err);font-size:14px;font-weight:600;margin-top:8px}
+.ok{color:var(--ok);font-size:14px;font-weight:600;margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top .acts{display:flex;gap:8px;flex-wrap:wrap}
+.sync{margin-top:12px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.sync i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block;flex:0 0 auto}
+.sync.ok i{background:var(--ok)} .sync.bad i{background:var(--err)} .sync.warn i{background:#d98a00}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:22px 0 14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink);font:600 14px var(--f-body);min-height:42px;padding:0 18px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--river);color:var(--on-river)}
+.rng{display:inline-flex;gap:6px;flex-wrap:wrap}
+.rng button{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:99px;font:600 13px var(--f-body);min-height:36px;padding:0 14px;cursor:pointer}
+.rng button[aria-pressed=true]{border-color:var(--river);box-shadow:inset 0 0 0 1px var(--river);color:var(--river)}
+
+/* hero + tiles */
+.hero{display:flex;align-items:flex-end;gap:14px 28px;flex-wrap:wrap;margin:6px 0 16px}
+.hero .big{font:600 56px/1 var(--f-body);letter-spacing:-.02em}
+.hero .lab{font-size:14px;color:var(--muted);margin-top:4px}
+.hero .delta{font-size:14px;font-weight:600;padding-bottom:6px}
+.delta.up{color:var(--ok)} .delta.down{color:var(--err)} .delta.flat{color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tile .l{font-size:13px;color:var(--muted)}
+.tile .v{font:600 26px/1.15 var(--f-body);margin-top:2px}
+.tile .s{font-size:12px;color:var(--muted);margin-top:2px;min-height:18px}
+.meter{height:6px;border-radius:99px;background:var(--seq-track);margin-top:7px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--seq-fill);border-radius:99px}
+
+/* charts */
+section.blk{margin-top:22px}
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.chead p{font-size:13px;color:var(--muted);margin-top:2px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.chart{position:relative;width:100%;min-height:240px;touch-action:pan-y}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart svg:focus-visible{outline-offset:4px}
+.chart text{font:12px var(--f-body);fill:var(--muted)}
+.chart .val{fill:var(--ink);font-weight:600}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .hit{fill:transparent;cursor:crosshair}
+.chart .hot{fill:var(--shade)}
+.dim{opacity:.55;transition:opacity .15s}
+.tip{position:absolute;pointer-events:none;z-index:3;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:9px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:8px 11px;font-size:13px;min-width:132px;transform:translate(-50%,-100%)}
+.tip .d{color:var(--muted);font-size:12px;margin-bottom:3px}
+.tip .t{font:600 18px/1.2 var(--f-body)}
+.tip .r{display:flex;align-items:center;gap:7px;margin-top:3px;color:var(--muted)}
+.tip .r b{color:var(--ink);margin-left:auto;padding-left:14px;font-weight:600}
+.tip .r i{width:12px;height:3px;border-radius:2px;display:inline-block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}.hero .big{font-size:46px}}
+.lang{display:grid;grid-template-columns:90px 1fr auto;gap:8px 10px;align-items:center;font-size:14px}
+.lang .bar{height:10px;border-radius:0 4px 4px 0;background:var(--s1);min-width:2px}
+.lang .n{font-family:var(--f-num);font-size:13px;color:var(--ink)}
+.lang .nm{color:var(--ink)}
+table.dt{width:100%;border-collapse:collapse;font-size:14px}
+table.dt th,table.dt td{padding:7px 8px;border-top:1px solid var(--line);text-align:right}
+table.dt th:first-child,table.dt td:first-child{text-align:left}
+table.dt th{font-size:12px;color:var(--muted);font-weight:600;border-top:0}
+table.dt td{font-variant-numeric:tabular-nums}
+.tablewrap{max-height:340px;overflow:auto}
+.empty{padding:26px 8px;text-align:center;color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin-top:22px;line-height:1.6}
+
+/* setup */
+.steps{margin:10px 0 0;padding-left:20px}
+.steps li{margin:6px 0}
+.steps code,.mono{font-family:var(--f-num);font-size:13px;background:var(--shade);border-radius:5px;padding:1px 5px}
+pre.rules{margin:8px 0 0;padding:12px;background:var(--shade);border-radius:9px;font:12px/1.5 var(--f-num);overflow:auto;max-height:260px;white-space:pre-wrap;word-break:break-word}
+.form2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media (max-width:640px){.form2{grid-template-columns:1fr}}
+#lock{min-height:60svh;display:grid;place-items:center}
+.lockcard{max-width:420px;text-align:left}
+.lockcard h1{margin-bottom:8px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div>
+      <h1>Guest map usage</h1>
+      <p class="muted">Sib San Resort &amp; Spa · private to the administrator</p>
+    </div>
+    <div class="acts">
+      <a class="btn" href="admin.html">Villa availability</a>
+      <button class="btn" id="refresh" type="button">Refresh</button>
+      <button class="btn" id="csv" type="button" hidden>Export CSV</button>
+      <a class="btn" href="./">Open map</a>
+    </div>
+  </div>
+
+  <div id="lock" hidden><div class="card lockcard">
+    <h1>Unlock first</h1>
+    <p class="muted" style="margin-top:6px">This page opens on a device where the Villa availability page is unlocked. Unlock it there, then come back with the “Guest usage” button.</p>
+    <p style="margin-top:16px"><a class="btn primary" href="admin.html">Go to Villa availability</a></p>
+  </div></div>
+
+  <div id="body" hidden>
+    <div class="sync" id="sync" role="status"><i></i><span id="syncTxt">Loading…</span></div>
+
+    <section class="blk card" id="setup" hidden>
+      <h2>Connect the visit counter</h2>
+      <p class="muted" style="margin-top:6px">The map needs somewhere to add up the visits. This uses a free Google Firebase database that stores only anonymous counts per day: no names, no phone numbers, no device information.</p>
+      <ol class="steps">
+        <li>Open <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a>, sign in with Google and choose <b>Create a project</b> (name it <span class="mono">sibsan-map-stats</span>, switch Google Analytics off).</li>
+        <li>In the left menu choose <b>Build → Firestore Database → Create database</b>. Pick the region <span class="mono">asia-southeast1</span> (Singapore) and <b>Start in production mode</b>.</li>
+        <li>Open the <b>Rules</b> tab, delete everything there, paste the rules below, then press <b>Publish</b>.</li>
+        <li>Click the gear next to <b>Project Overview → Project settings</b>. Under <b>Your apps</b> press the <span class="mono">&lt;/&gt;</span> (Web) button, give it any name, and copy the <b>apiKey</b> from the code shown. The <b>Project ID</b> is on the same Project settings page.</li>
+        <li>Paste both values below and press <b>Connect</b>.</li>
+      </ol>
+      <div class="chead" style="margin-top:14px"><h3>Rules to paste</h3><button class="btn sm" id="copyRules" type="button">Copy rules</button></div>
+      <pre class="rules" id="rules"></pre>
+      <p class="hint">These rules let anyone read the daily totals and add exactly one visit at a time. Nobody can change or delete past counts from the website.</p>
+      <div class="form2">
+        <label class="f"><span>Project ID</span><input id="cfgProj" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sibsan-map-stats-1a2b3"></label>
+        <label class="f"><span>Web API key</span><input id="cfgKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…"></label>
+      </div>
+      <div style="margin-top:12px"><button class="btn primary" id="cfgSave" type="button">Connect</button></div>
+      <p id="cfgMsg" role="status"></p>
+      <pre class="rules" id="cfgFile" hidden></pre>
+    </section>
+
+    <div id="dash" hidden>
+      <div class="filters">
+        <div class="seg" role="group" aria-label="Period">
+          <button type="button" data-g="daily" aria-pressed="true">Daily</button>
+          <button type="button" data-g="monthly" aria-pressed="false">Monthly</button>
+          <button type="button" data-g="yearly" aria-pressed="false">Yearly</button>
+        </div>
+        <div class="rng" id="rng" role="group" aria-label="Range"></div>
+      </div>
+
+      <div class="hero">
+        <div><div class="big" id="hBig">0</div><div class="lab" id="hLab">visits</div></div>
+        <div class="delta flat" id="hDelta"></div>
+      </div>
+
+      <div class="tiles" id="tiles"></div>
+
+      <section class="blk card">
+        <div class="chead">
+          <div><h2 id="cTitle">Visits per day</h2><p id="cSub">Each visit is one guest device opening the map, counted once per 30 minutes.</p></div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div class="legend" aria-label="Legend"><span><i style="background:var(--s1)"></i>Via QR code</span><span><i style="background:var(--s2)"></i>Other link</span></div>
+            <button class="btn sm" id="tblBtn" type="button" aria-pressed="false">Table</button>
+          </div>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="tablewrap" id="tbl" hidden></div>
+      </section>
+
+      <div class="grid2">
+        <section class="blk card" style="margin-top:16px">
+          <div class="chead"><div><h2>Busiest hours</h2><p>Visits by hour of day (resort time), for the range above.</p></div></div>
+          <div class="chart" id="hours" style="min-height:190px"></div>
+        </section>
+        <section class="blk card" style="margin-top:16px">
+          <div class="chead"><div><h2>Languages</h2><p>Language the guest was using when they opened the map.</p></div></div>
+          <div class="lang" id="langs"></div>
+        </section>
+      </div>
+
+      <p class="note" id="note"></p>
+    </div>
+  </div>
+</main>
+
+<script src="stats-config.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const host=location.hostname,onPages=host.endsWith('.github.io');
+const OWNER=onPages?host.split('.')[0]:'jwee903-cmd';
+const REPO=onPages?(location.pathname.split('/')[1]||'sibsan-map'):'sibsan-map';
+const LANGS={en:'English',zh:'Chinese',th:'Thai',ar:'Arabic',ja:'Japanese',ko:'Korean'};
+const HOURS=[...Array(24).keys()].map(h=>'h'+String(h).padStart(2,'0'));
+const FIELDS=['total','qr','direct','newv','retv',...HOURS,...Object.keys(LANGS).map(l=>'lang_'+l)];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/* ---------- helpers ---------- */
+function el(tag,attrs,...kids){const e=document.createElement(tag);for(const k in attrs||{}){if(k==='text')e.textContent=attrs[k];else e.setAttribute(k,attrs[k]);}for(const c of kids)if(c!=null)e.append(c);return e;}
+const NS='http://www.w3.org/2000/svg';
+function sv(tag,attrs,...kids){const e=document.createElementNS(NS,tag);for(const k in attrs||{}){if(k==='text')e.textContent=attrs[k];else e.setAttribute(k,attrs[k]);}for(const c of kids)if(c!=null)e.append(c);return e;}
+function bkkToday(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).reduce((o,x)=>(o[x.type]=x.value,o),{});return p.year+'-'+p.month+'-'+p.day;}
+const U=d=>Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8,10));
+const fromU=u=>new Date(u).toISOString().slice(0,10);
+const addDays=(d,n)=>fromU(U(d)+n*864e5);
+const addMonths=(ym,n)=>{let y=+ym.slice(0,4),m=+ym.slice(5,7)-1+n;y+=Math.floor(m/12);m=((m%12)+12)%12;return y+'-'+String(m+1).padStart(2,'0');};
+const dimOf=ym=>new Date(Date.UTC(+ym.slice(0,4),+ym.slice(5,7),0)).getUTCDate();
+const fmt=n=>Number(n||0).toLocaleString('en-US');
+const dLabel=d=>(+d.slice(8))+' '+MON[+d.slice(5,7)-1];
+const dLong=d=>(+d.slice(8))+' '+MON[+d.slice(5,7)-1]+' '+d.slice(0,4);
+const mLabel=ym=>MON[+ym.slice(5,7)-1]+' '+ym.slice(2,4);
+const pct=(a,b)=>b>0?Math.round(a*100/b):null;
+
+/* ---------- config ---------- */
+function getCfg(){
+  let c=null;try{c=JSON.parse(store.get('sibsan-stats-cfg')||'null');}catch(e){}
+  if(c&&c.projectId&&c.apiKey)return c;
+  const w=window.SIBSAN_STATS;return w&&w.projectId&&w.apiKey?w:null;}
+const base=c=>'https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(c.projectId)+'/databases/(default)/documents/scans';
+
+/* ---------- data ---------- */
+let DAYS={},CFG=null,LOADED=false,gran='daily',rangeSel={daily:30,monthly:12,yearly:0},showTable=false;
+async function probe(c){
+  try{
+    const r=await fetch(base(c)+'?pageSize=1&key='+encodeURIComponent(c.apiKey));
+    if(r.ok)return {ok:true};
+    let m='';try{m=((await r.json()).error||{}).message||'';}catch(e){}
+    if(r.status===400)return {ok:false,msg:'Google does not recognise the project ID or API key. Check both were copied in full.'};
+    if(r.status===403)return {ok:false,msg:'The database refuses reading. Publish the rules above (step 3), wait a minute and try again.'};
+    if(r.status===404)return {ok:false,msg:'No Firestore database found in that project. Do step 2 first.'};
+    return {ok:false,msg:'Google answered '+r.status+(m?': '+m:'')+'.'};
+  }catch(e){return {ok:false,msg:'Could not reach Google. Check the connection and try again.'};}}
+async function loadAll(c){
+  const out={};let tok='';
+  for(let i=0;i<60;i++){
+    const r=await fetch(base(c)+'?pageSize=300&key='+encodeURIComponent(c.apiKey)+(tok?'&pageToken='+encodeURIComponent(tok):''));
+    if(!r.ok)throw new Error('http '+r.status);
+    const j=await r.json();
+    for(const d of j.documents||[]){
+      const id=d.name.split('/').pop();if(!/^\d{4}-\d{2}-\d{2}$/.test(id))continue;
+      const o={};for(const f in d.fields||{}){const v=d.fields[f];o[f]=+(v.integerValue??v.doubleValue??0)||0;}
+      out[id]=o;}
+    tok=j.nextPageToken||'';if(!tok)break;}
+  return out;}
+function setSync(kind,t){const s=$('sync');s.className='sync '+(kind||'');$('syncTxt').textContent=t;}
+
+/* ---------- aggregation ---------- */
+const sumDays=(days,f)=>days.reduce((a,d)=>a+((DAYS[d]||{})[f]||0),0);
+function rangeInfo(){
+  const today=bkkToday();let days=[],buckets=[],title,sub,prevDays=[];
+  if(gran==='daily'){
+    const n=rangeSel.daily;
+    for(let i=n-1;i>=0;i--)days.push(addDays(today,-i));
+    for(let i=2*n-1;i>=n;i--)prevDays.push(addDays(today,-i));
+    buckets=days.map(d=>({key:d,label:dLabel(d),long:dLong(d),days:[d]}));
+    title='Visits per day';sub='Last '+n+' days, today included.';
+  }else if(gran==='monthly'){
+    const n=rangeSel.monthly,cm=today.slice(0,7);
+    const ms=[];for(let i=n-1;i>=0;i--)ms.push(addMonths(cm,-i));
+    const pms=[];for(let i=2*n-1;i>=n;i--)pms.push(addMonths(cm,-i));
+    const expand=(m)=>{const a=[];for(let i=1;i<=dimOf(m);i++){const d=m+'-'+String(i).padStart(2,'0');if(d<=today)a.push(d);}return a;};
+    buckets=ms.map(m=>({key:m,label:MON[+m.slice(5)-1]+(m.endsWith('-01')||m===ms[0]?' '+m.slice(2,4):''),long:MON[+m.slice(5)-1]+' '+m.slice(0,4),days:expand(m)}));
+    days=buckets.flatMap(b=>b.days);prevDays=pms.flatMap(expand);
+    title='Visits per month';sub='Last '+n+' months, this month so far.';
+  }else{
+    const ys=Object.keys(DAYS).map(d=>+d.slice(0,4));const cy=+today.slice(0,4);
+    let y0=ys.length?Math.min(...ys):cy;if(y0>cy-1)y0=cy-1;
+    for(let y=y0;y<=cy;y++){const a=[];for(let m=1;m<=12;m++){const ym=y+'-'+String(m).padStart(2,'0');for(let i=1;i<=dimOf(ym);i++){const d=ym+'-'+String(i).padStart(2,'0');if(d<=today)a.push(d);}}buckets.push({key:String(y),label:String(y),long:String(y),days:a});}
+    days=buckets.flatMap(b=>b.days);
+    const last=buckets[buckets.length-1],prev=buckets[buckets.length-2];
+    prevDays=prev?prev.days.slice(0,last.days.length):[];
+    days=last.days; /* hero/tiles for yearly = this year vs same days last year */
+    title='Visits per year';sub='Every year with data. This year is to date.';
+  }
+  for(const b of buckets){b.qr=sumDays(b.days,'qr');b.direct=sumDays(b.days,'direct');b.total=sumDays(b.days,'total');}
+  return {today,days,prevDays,buckets,title,sub};}
+
+/* ---------- chart ---------- */
+function niceMax(v){if(v<=4)return 4;const p=Math.pow(10,Math.floor(Math.log10(v/4)));const f=[1,2,2.5,5,10].find(x=>x*p*4>=v)||10;return f*p*4;}
+function tipEl(){let t=document.querySelector('.tip');return t;}
+function columns(host,items,opt){
+  /* items: [{label,long,parts:[{v,color,name}]}] stacked from the baseline up */
+  host.replaceChildren();
+  const W=Math.max(260,host.clientWidth),H=opt.h||250,m={l:opt.ml||38,r:6,t:16,b:26},pw=W-m.l-m.r,ph=H-m.t-m.b;
+  const n=items.length,slot=pw/n,bw=Math.max(2,Math.min(24,slot*0.72));
+  const tot=it=>it.parts.reduce((a,p)=>a+p.v,0);
+  const maxV=Math.max(0,...items.map(tot)),top=niceMax(maxV),y=v=>m.t+ph-(v/top)*ph;
+  const s=sv('svg',{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:'img',tabindex:'0','aria-label':opt.aria});
+  for(let i=0;i<=4;i++){const v=top*i/4,yy=y(v);s.append(sv('line',{x1:m.l,x2:W-m.r,y1:yy,y2:yy,class:'gl'}),sv('text',{x:m.l-6,y:yy+4,'text-anchor':'end',text:fmt(v)}));}
+  const hot=sv('rect',{class:'hot',y:m.t,height:ph,width:slot,rx:3,visibility:'hidden'});s.append(hot);
+  const step=Math.max(1,Math.ceil((opt.lw||44)/slot));
+  const peak=items.reduce((bi,it,i)=>tot(it)>tot(items[bi])?i:bi,0);
+  items.forEach((it,i)=>{
+    const cx=m.l+slot*i+slot/2,x=cx-bw/2;let acc=0;
+    const live=it.parts.filter(p=>p.v>0);
+    live.forEach((p,k)=>{
+      const y1=y(acc),y2=y(acc+p.v);let h=y1-y2;const isTop=k===live.length-1;
+      const gap=k>0?2:0;const yy=y2,hh=Math.max(1,h-gap);
+      const r=isTop?Math.min(4,hh,bw/2):0;
+      const d=isTop?`M${x},${yy+hh}V${yy+r}Q${x},${yy} ${x+r},${yy}H${x+bw-r}Q${x+bw},${yy} ${x+bw},${yy+r}V${yy+hh}Z`:`M${x},${yy}H${x+bw}V${yy+hh}H${x}Z`;
+      s.append(sv('path',{d,style:'fill:'+p.color}));acc+=p.v;});
+    if(i%step===0||i===items.length-1&&(items.length-1)%step===0)s.append(sv('text',{x:cx,y:H-8,'text-anchor':'middle',text:it.label}));
+    if(i===peak&&tot(it)>0)s.append(sv('text',{x:cx,y:y(tot(it))-5,'text-anchor':'middle',class:'val',text:fmt(tot(it))}));
+  });
+  const tip=el('div',{class:'tip'});tip.hidden=true;
+  let cur=-1;
+  function show(i){
+    cur=i;const it=items[i];hot.setAttribute('x',m.l+slot*i);hot.setAttribute('visibility','visible');
+    tip.replaceChildren(el('div',{class:'d',text:it.long||it.label}),el('div',{class:'t',text:fmt(tot(it))+(opt.unit?' '+opt.unit:'')}));
+    if(it.parts.length>1)for(const p of it.parts){const r=el('div',{class:'r'});const k=el('i');k.style.background=p.color;r.append(k,document.createTextNode(p.name),el('b',{text:fmt(p.v)}));tip.append(r);}
+    tip.hidden=false;
+    const px=Math.min(Math.max(m.l+slot*i+slot/2,70),W-70),tv=Math.max(tot(it),0);
+    tip.style.left=px+'px';tip.style.top=Math.max(y(tv)-8,50)+'px';}
+  function hide(){cur=-1;hot.setAttribute('visibility','hidden');tip.hidden=true;}
+  const hit=sv('rect',{class:'hit',x:m.l,y:m.t,width:pw,height:ph});
+  const idx=ev=>{const r=s.getBoundingClientRect();return Math.min(n-1,Math.max(0,Math.floor((ev.clientX-r.left-m.l)/slot)));};
+  hit.addEventListener('pointermove',ev=>show(idx(ev)));hit.addEventListener('pointerdown',ev=>show(idx(ev)));hit.addEventListener('pointerleave',ev=>{if(ev.pointerType==='mouse')hide();});
+  s.addEventListener('keydown',ev=>{if(ev.key==='ArrowRight'){show(Math.min(n-1,cur+1));ev.preventDefault();}else if(ev.key==='ArrowLeft'){show(Math.max(0,cur<0?n-1:cur-1));ev.preventDefault();}else if(ev.key==='Escape')hide();});
+  s.addEventListener('blur',hide);
+  s.append(hit);host.append(s,tip);}
+
+/* ---------- render ---------- */
+function setRanges(){
+  const box=$('rng');box.replaceChildren();
+  const opts=gran==='daily'?[[7,'Last 7 days'],[30,'Last 30 days'],[90,'Last 90 days']]:gran==='monthly'?[[6,'6 months'],[12,'12 months'],[24,'24 months']]:[];
+  for(const [v,t] of opts){const b=el('button',{type:'button',text:t,'aria-pressed':String(rangeSel[gran]===v)});b.onclick=()=>{rangeSel[gran]=v;setRanges();render();};box.append(b);}
+  box.hidden=!opts.length;}
+function tile(l,v,s,meterPct){const t=el('div',{class:'tile'},el('div',{class:'l',text:l}),el('div',{class:'v',text:v}),el('div',{class:'s',text:s||''}));if(meterPct!=null){const m=el('div',{class:'meter'});const i=el('i');i.style.width=meterPct+'%';m.append(i);t.append(m);}return t;}
+function render(){
+  const R=rangeInfo(),{today,days,prevDays,buckets}=R;
+  const total=sumDays(days,'total'),prev=sumDays(prevDays,'total');
+  $('hBig').textContent=fmt(total);
+  const unit=gran==='daily'?'last '+rangeSel.daily+' days':gran==='monthly'?'last '+rangeSel.monthly+' months':'this year to date';
+  $('hLab').textContent='visits, '+unit;
+  const dl=$('hDelta');
+  if(prev>0){const p=Math.round((total-prev)*100/prev);dl.className='delta '+(p>0?'up':p<0?'down':'flat');dl.textContent=(p>0?'▲ +':p<0?'▼ ':'● ')+p+'% vs '+(gran==='yearly'?'same days last year':'previous '+(gran==='daily'?rangeSel.daily+' days':rangeSel.monthly+' months'))+' ('+fmt(prev)+')';}
+  else{dl.className='delta flat';dl.textContent=total?'No earlier data to compare':'';}
+  /* tiles */
+  const t=$('tiles');t.replaceChildren();
+  const mDays=[];for(let i=1;i<=+today.slice(8);i++)mDays.push(today.slice(0,8)+String(i).padStart(2,'0'));
+  const yDays=[];{const a=Date.UTC(+today.slice(0,4),0,1),b=U(today);for(let u=a;u<=b;u+=864e5)yDays.push(fromU(u));}
+  t.append(tile('Today',fmt(sumDays([today],'total')),'resort time'),tile('This month',fmt(sumDays(mDays,'total')),MON[+today.slice(5,7)-1]+' '+today.slice(0,4)),tile('This year',fmt(sumDays(yDays,'total')),'to date'));
+  const avg=days.length?total/days.length:0;
+  t.append(tile('Average per day',avg>=10?fmt(Math.round(avg)):(Math.round(avg*10)/10).toString(),'in this range'));
+  let best=null;for(const d of days){const v=(DAYS[d]||{}).total||0;if(v>0&&(!best||v>best.v))best={d,v};}
+  t.append(tile('Busiest day',best?fmt(best.v):'–',best?dLong(best.d):'no visits yet'));
+  const q=sumDays(days,'qr'),o=sumDays(days,'direct'),qp=pct(q,q+o);
+  const hs=HOURS.map(h=>sumDays(days,h)),hmax=Math.max(0,...hs),hi=hs.indexOf(hmax);
+  t.append(tile('Busiest hour',hmax>0?String(hi).padStart(2,'0')+':00':'–',hmax>0?fmt(hmax)+' visits':'no visits yet'));
+  t.append(tile('Opened via QR',qp==null?'–':qp+'%',qp==null?'':fmt(q)+' of '+fmt(q+o),qp));
+  const nw=sumDays(days,'newv'),rt=sumDays(days,'retv'),rp=pct(rt,nw+rt);
+  t.append(tile('Returning guests',rp==null?'–':rp+'%',rp==null?'':fmt(rt)+' of '+fmt(nw+rt),rp));
+  /* main chart */
+  $('cTitle').textContent=R.title;$('cSub').textContent=R.sub+' Each visit is one guest device opening the map, counted once per 30 minutes.';
+  const items=buckets.map(b=>({label:b.label,long:b.long,parts:[{v:b.qr,color:'var(--s1)',name:'Via QR code'},{v:b.direct,color:'var(--s2)',name:'Other link'}]}));
+  const none=!Object.keys(DAYS).length;
+  $('tbl').hidden=!showTable;$('chart').hidden=showTable;
+  columns($('chart'),items,{aria:R.title+'. '+items.length+' columns. Use the arrow keys to read each one.',lw:gran==='daily'?46:40,unit:'visits'});
+  /* table */
+  const tb=el('table',{class:'dt'},el('thead',{},el('tr',{},...['Period','Visits','Via QR','Other link'].map(x=>el('th',{text:x})))));
+  const body=el('tbody');for(const b of buckets.slice().reverse())body.append(el('tr',{},el('td',{text:b.long}),el('td',{text:fmt(b.total)}),el('td',{text:fmt(b.qr)}),el('td',{text:fmt(b.direct)})));
+  tb.append(body);$('tbl').replaceChildren(tb);
+  $('tblBtn').setAttribute('aria-pressed',String(showTable));$('tblBtn').textContent=showTable?'Chart':'Table';
+  /* hours */
+  const hItems=HOURS.map((h,i)=>({label:String(i),long:String(i).padStart(2,'0')+':00 to '+String(i).padStart(2,'0')+':59',parts:[{v:sumDays(days,h),color:'var(--s1)',name:'Visits'}]}));
+  columns($('hours'),hItems,{h:190,ml:34,lw:26,aria:'Visits by hour of day',unit:'visits'});
+  /* languages */
+  const L=$('langs');L.replaceChildren();
+  const lr=Object.keys(LANGS).map(k=>({k,v:sumDays(days,'lang_'+k)})).sort((a,b)=>b.v-a.v),lmax=Math.max(1,...lr.map(x=>x.v)),lt=lr.reduce((a,x)=>a+x.v,0);
+  for(const x of lr){const bar=el('div',{class:'bar'});bar.style.width=Math.max(x.v?2:0,x.v/lmax*100)+'%';L.append(el('div',{class:'nm',text:LANGS[x.k]}),el('div',{},bar),el('div',{class:'n',text:fmt(x.v)+(lt?' · '+Math.round(x.v*100/lt)+'%':'')}));}
+  $('note').textContent=none?'No visits recorded yet. Counting starts when guests open the map; visits from this device and from the admin pages are never counted. To tell QR scans apart from other links, print the QR code with the address ending in ?src=qr.':'Visits from staff devices (any device that has opened the admin pages) are not counted. “Via QR code” counts only visits that came from a QR code carrying ?src=qr in its address. Hours use resort time (Bangkok).';
+  $('csv').hidden=false;}
+
+/* ---------- csv ---------- */
+$('csv').onclick=()=>{
+  const ds=Object.keys(DAYS).sort();
+  const rows=[['Date','Visits','Via QR','Other link','New devices','Returning devices',...Object.keys(LANGS).map(l=>LANGS[l])]];
+  for(const d of ds){const o=DAYS[d];rows.push([d,o.total||0,o.qr||0,o.direct||0,o.newv||0,o.retv||0,...Object.keys(LANGS).map(l=>o['lang_'+l]||0)]);}
+  const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
+  const a=el('a',{href:URL.createObjectURL(blob),download:'sibsan-map-visits.csv'});document.body.append(a);a.click();a.remove();};
+
+/* ---------- load + setup ---------- */
+async function refresh(){
+  CFG=getCfg();
+  if(!CFG){setSync('warn','Not connected yet. Follow the steps below.');$('setup').hidden=false;$('dash').hidden=true;$('csv').hidden=true;return;}
+  setSync('', 'Loading…');
+  try{
+    DAYS=await loadAll(CFG);LOADED=true;
+    $('setup').hidden=true;$('dash').hidden=false;
+    const n=Object.keys(DAYS).length;
+    setSync('ok',n?'Connected · '+n+' day'+(n===1?'':'s')+' of data · updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Connected · waiting for the first visit');
+    setRanges();render();
+  }catch(e){
+    const p=await probe(CFG);
+    setSync('bad',p.ok?'Could not load the visit data. Try Refresh.':p.msg);
+    $('setup').hidden=false;$('dash').hidden=!LOADED;}}
+$('refresh').onclick=refresh;
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{gran=b.dataset.g;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));setRanges();render();});
+$('tblBtn').onclick=()=>{showTable=!showTable;render();};
+let rz=0;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(LOADED&&!$('dash').hidden)render();},150);});
+
+function rulesText(){
+  const list="['"+FIELDS.join("', '")+"']";
+  return `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /scans/{day} {
+      allow read: if true;
+      allow create: if day.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.resource.data.total == 1
+        && request.resource.data.keys().hasOnly(${list});
+      allow update: if request.resource.data.total == resource.data.total + 1
+        && request.resource.data.keys().hasOnly(${list});
+      allow delete: if false;
+    }
+  }
+}`;}
+$('rules').textContent=rulesText();
+$('copyRules').onclick=async()=>{try{await navigator.clipboard.writeText(rulesText());$('copyRules').textContent='Copied';}catch(e){const r=document.createRange();r.selectNodeContents($('rules'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyRules').textContent='Selected, press copy';}setTimeout(()=>$('copyRules').textContent='Copy rules',2200);};
+
+$('cfgSave').onclick=async()=>{
+  const c={projectId:$('cfgProj').value.trim(),apiKey:$('cfgKey').value.trim()},m=$('cfgMsg');m.className='';$('cfgFile').hidden=true;
+  if(!c.projectId||!c.apiKey){m.className='err';m.textContent='Enter both the Project ID and the Web API key.';return;}
+  if(!/^[a-z0-9-]+$/i.test(c.projectId)||!/^[\w-]{20,}$/.test(c.apiKey)){m.className='err';m.textContent='One of the values looks wrong. The Project ID has only letters, numbers and dashes; the API key starts with AIza.';return;}
+  m.textContent='Checking…';
+  const p=await probe(c);
+  if(!p.ok){m.className='err';m.textContent=p.msg;return;}
+  store.set('sibsan-stats-cfg',JSON.stringify(c));
+  const file='/* Guest-usage counter settings. The project id and web API key only identify the database; the database rules let guests do nothing except add one visit. */\nwindow.SIBSAN_STATS={projectId:'+JSON.stringify(c.projectId)+',apiKey:'+JSON.stringify(c.apiKey)+'};\n';
+  const tok=store.get('sibsan-adm-token');let pushed=false,why='';
+  if(tok){
+    try{
+      const h={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'},url='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/stats-config.js';
+      const g=await fetch(url,{headers:h});let sha;if(g.ok)sha=(await g.json()).sha;
+      const r=await fetch(url,{method:'PUT',headers:h,body:JSON.stringify({message:'Connect guest visit counter',content:btoa(file),sha})});
+      if(r.ok)pushed=true;else why=r.status===403||r.status===404?'The GitHub token cannot write to this repository.':'GitHub answered '+r.status+'.';
+    }catch(e){why='No connection to GitHub.';}}
+  else why='No GitHub token is saved on this device.';
+  if(pushed){m.className='ok';m.textContent='Connected. Guest visits are counted from now on (the map picks this up within a couple of minutes).';}
+  else{m.className='warn';m.style.color='var(--warn)';m.textContent='Connected for this dashboard. '+why+' To start counting guest visits, this file must be saved as stats-config.js in the repository:';$('cfgFile').textContent=file;$('cfgFile').hidden=false;}
+  refresh();};
+
+/* ---------- boot ---------- */
+if(!store.get('sibsan-adm-key')){$('lock').hidden=false;$('csv').hidden=true;$('refresh').hidden=true;}
+else{store.set('sibsan-staff','1');$('body').hidden=false;refresh();}
+})();
+</script>
+</body>
+</html>
