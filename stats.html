@@ -154,8 +154,8 @@ pre.rules{margin:8px 0 0;padding:12px;background:var(--shade);border-radius:9px;
         <li>Open <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a>, sign in with Google and choose <b>Create a project</b> (name it <span class="mono">sibsan-map-stats</span>, switch Google Analytics off).</li>
         <li>In the left menu choose <b>Build → Firestore Database → Create database</b>. Pick the region <span class="mono">asia-southeast1</span> (Singapore) and <b>Start in production mode</b>.</li>
         <li>Open the <b>Rules</b> tab, delete everything there, paste the rules below, then press <b>Publish</b>.</li>
-        <li>Click the gear next to <b>Project Overview → Project settings</b>. Under <b>Your apps</b> press the <span class="mono">&lt;/&gt;</span> (Web) button, give it any name, and copy the <b>apiKey</b> from the code shown. The <b>Project ID</b> is on the same Project settings page.</li>
-        <li>Paste both values below and press <b>Connect</b>.</li>
+        <li>Click the gear next to <b>Project Overview → Project settings</b>. Under <b>Your apps</b> press the <span class="mono">&lt;/&gt;</span> (Web) button, give it any name, and press the copy icon on the code block shown (or copy just the <b>apiKey</b>). The <b>Project ID</b> is in the same code (<span class="mono">projectId</span>).</li>
+        <li>Paste into the <b>Web API key</b> box below: pasting the whole code block fills in both boxes. Then press <b>Connect</b>.</li>
       </ol>
       <div class="chead" style="margin-top:14px"><h3>Rules to paste</h3><button class="btn sm" id="copyRules" type="button">Copy rules</button></div>
       <pre class="rules" id="rules"></pre>
@@ -450,6 +450,12 @@ service cloud.firestore {
 $('rules').textContent=rulesText();
 $('copyRules').onclick=async()=>{try{await navigator.clipboard.writeText(rulesText());$('copyRules').textContent='Copied';}catch(e){const r=document.createRange();r.selectNodeContents($('rules'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copyRules').textContent='Selected, press copy';}setTimeout(()=>$('copyRules').textContent='Copy rules',2200);};
 
+/* pasting Firebase's whole config block into either box fills both fields */
+function fromBlock(){
+  const t=$('cfgProj').value+' '+$('cfgKey').value;
+  const k=t.match(/apiKey\s*:\s*["']([^"']+)["']/),p=t.match(/projectId\s*:\s*["']([^"']+)["']/);
+  if(k){$('cfgKey').value=k[1];if(p)$('cfgProj').value=p[1];}}
+$('cfgProj').addEventListener('input',fromBlock);$('cfgKey').addEventListener('input',fromBlock);
 $('cfgSave').onclick=async()=>{
   const c={projectId:$('cfgProj').value.trim(),apiKey:$('cfgKey').value.trim()},m=$('cfgMsg');m.className='';$('cfgFile').hidden=true;
   if(!c.projectId||!c.apiKey){m.className='err';m.textContent='Enter both the Project ID and the Web API key.';return;}
