@@ -3,6 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
 <style id="css">
+#secScale[hidden]{display:none!important}
 /* Layout: a working field map — control rail beside a pannable plan; story pages open full-screen over it */
 :root{
   --bg:#f3f1ea; --panel:#fffdf7; --ink:#1f2a27; --muted:#66706b; --line:#dcd7c8;
@@ -334,7 +335,7 @@ body.walking .legend,body.walking .hint,body.walking .peek{display:none}
       <div class="chips" id="chips"></div>
     </section>
 
-    <section class="sec">
+    <section class="sec" id="secScale" hidden>
       <h2 data-i18n="measureScale">Measure &amp; scale</h2>
       <div class="row">
         <button class="btn" id="measureBtn" aria-pressed="false" data-i18n="measureDist">Measure distance</button>
@@ -1072,7 +1073,15 @@ function redrawMeasure(){const ml=$("measureLayer");ml.querySelectorAll(".ms").f
   for(const q of mpts) el("circle",{cx:q[0],cy:q[1],r:5,fill:"#fff",stroke:"#1f2a27","stroke-width":2.5},g);}
 $("measureBtn").onclick=()=>{measuring=!measuring;$("measureBtn").setAttribute("aria-pressed",measuring);svg.classList.toggle("measuring",measuring);
   $("hint").hidden=!measuring;$("hint").textContent=T("tapTwo");mpts=[];redrawMeasure();};
-$("acres").oninput=e=>{const a=parseFloat(e.target.value);if(a>0)setAcres(a);};
+/* Measure & scale is for the administrator only: it is hidden from guests and appears
+   on a device where admin.html has been unlocked (same test as the red/green villa dots). */
+const isAdm=()=>{try{return !!localStorage.getItem("sibsan-adm-key");}catch(e){return false;}};
+function scaleGate(){const on=isAdm(),sec=$("secScale");sec.hidden=!on;
+  if(!on){if(measuring)$("measureBtn").click();if(parseFloat($("acres").value)!==29){$("acres").value=29;setAcres(29);}}}
+$("acres").oninput=e=>{if(!isAdm())return;const a=parseFloat(e.target.value);if(a>0)setAcres(a);};
+$("measureBtn").addEventListener("click",e=>{if(!isAdm()&&!measuring){e.stopImmediatePropagation();}},true);
+window.addEventListener("storage",e=>{if(e.key==="sibsan-adm-key"||e.key===null)scaleGate();});
+scaleGate();
 function updateScaleBar(){const r=svg.getBoundingClientRect();if(!r.width)return;
   const pxPerUnit=Math.min(r.width/vb.w,r.height/vb.h);const mPerScreenPx=MPP/pxPerUnit;
   const target=mPerScreenPx*90;const nice=[5,10,20,25,50,100,200,250,500].find(n=>n>=target*0.6)||500;
