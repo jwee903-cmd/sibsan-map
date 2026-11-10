@@ -690,6 +690,24 @@ function flashAreas(keys,fit){
 }
 
 /* ---------- route ---------- */
+/* Display only: tidy the walking route. Tiny zig-zags are straightened, then every corner is rounded
+   with a short curve. Routing, distances and walking progress still use the exact path. */
+function smoothD(pts,R=9){
+  const f=v=>v.toFixed(1);
+  if(!pts||!pts.length)return "";
+  const dpS=(a,tol)=>{if(a.length<3)return a;const p=a[0],q=a[a.length-1],dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy);
+    let j=0,m=-1;for(let i=1;i<a.length-1;i++){const d=L?Math.abs(dx*(a[i][1]-p[1])-dy*(a[i][0]-p[0]))/L:Math.hypot(a[i][0]-p[0],a[i][1]-p[1]);if(d>m){m=d;j=i;}}
+    return m>tol?dpS(a.slice(0,j+1),tol).slice(0,-1).concat(dpS(a.slice(j),tol)):[p,q];};
+  let a=[pts[0]];for(const p of pts)if(Math.hypot(p[0]-a[a.length-1][0],p[1]-a[a.length-1][1])>0.01)a.push(p);
+  a=dpS(a,1.1);
+  if(a.length<3)return a.map((p,i)=>(i?"L":"M")+f(p[0])+" "+f(p[1])).join("");
+  let d="M"+f(a[0][0])+" "+f(a[0][1]);
+  for(let i=1;i<a.length-1;i++){
+    const p=a[i-1],c=a[i],n=a[i+1],l1=Math.hypot(c[0]-p[0],c[1]-p[1]),l2=Math.hypot(n[0]-c[0],n[1]-c[1]);
+    const r1=Math.min(R,l1/2),r2=Math.min(R,l2/2);
+    const s1=[c[0]+(p[0]-c[0])*r1/l1,c[1]+(p[1]-c[1])*r1/l1],e1=[c[0]+(n[0]-c[0])*r2/l2,c[1]+(n[1]-c[1])*r2/l2];
+    d+="L"+f(s1[0])+" "+f(s1[1])+"Q"+f(c[0])+" "+f(c[1])+" "+f(e1[0])+" "+f(e1[1]);}
+  const z=a[a.length-1];return d+"L"+f(z[0])+" "+f(z[1]);}
 function route(zoom){
   if(WK)stopWalk(false);
   const a=$("from").value,b=$("to").value,rl=$("routeLayer");rl.innerHTML="";
@@ -701,7 +719,7 @@ function route(zoom){
      <div class="walkcta"><button class="btn primary" id="walkBtn">${esc(T("startWalking"))}</button><p class="note">${esc(T("walkCtaHere"))}</p></div>`;
     $("walkBtn").onclick=startWalk;if(zoom)setView(pb[0]-160,pb[1]-120,320);return;}
   const r=shortest(a,b),m=r.len*MPP;
-  const d=r.path.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join("");
+  const d=smoothD(r.path);
   el("path",{d,fill:"none",stroke:"#fff","stroke-width":9,"stroke-linecap":"round","stroke-linejoin":"round",opacity:.9},rl);
   el("path",{d,fill:"none",stroke:"#e2552d","stroke-width":5,"stroke-linecap":"round","stroke-linejoin":"round"},rl);
   const pa=pointOf(a),pb=pointOf(b);
@@ -841,7 +859,7 @@ function stopWalk(redraw){if(!WK)return;
   WK.watch=null;WK=null;gtRelease();meDraw();mePill();if(!GT.on)wakeOff();document.body.classList.remove("walking");$("walk").hidden=true;$("walk").innerHTML="";
   if(redraw)route(false);}
 function drawWalk(){const W=WK,rl=$("routeLayer");rl.innerHTML="";if(!W)return;
-  const D=pts=>pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join("");
+  const D=smoothD;
   const pb=pointOf(W.to);
   if(W.path){
     if(W.snap&&!W.arrived){const done=W.path.slice(0,W.seg).concat([W.snap]),left=[W.snap].concat(W.path.slice(W.seg));
